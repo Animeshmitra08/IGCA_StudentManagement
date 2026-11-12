@@ -1,81 +1,96 @@
 import React from 'react';
-import { View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
-import { AppHeader } from '@/src/components/AppHeader';
-import { BatchCard } from '@/src/components/BatchCard';
+import { useDataGate } from '@/src/components/DataGate';
 import { Screen } from '@/src/components/Screen';
 import { StudentRow } from '@/src/components/StudentRow';
-import { Card, EmptyState, InfoRow, SectionHeader } from '@/src/components/ui';
+import { AVATAR_INSET, EmptyState, Group, InfoRow, Lead, Progress, SectionHeader, Txt } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
 import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
-import { daysBetween, formatDate } from '@/src/utils/format';
+import { daysBetween, formatDate, titleCase } from '@/src/utils/format';
 
 export default function AdminBatchDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useAppTheme();
   const router = useRouter();
-  const { batchById, courseById, studentsOfBatch, seatsTaken } = useData();
+  const { batchById, courseById, studentsOfBatch } = useData();
+  const gate = useDataGate('detail');
+  if (gate) return gate;
 
   const batch = batchById(id);
 
   if (!batch) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.screen }}>
-        <AppHeader title="Batch" back />
-        <EmptyState icon="calendar-alert" title="Batch not found" />
+      <View style={[styles.root, { backgroundColor: colors.screen }]}>
+        <EmptyState
+          icon="calendar-alert"
+          title="Batch not found"
+          action={{ label: 'Go back', onPress: () => router.back() }}
+        />
       </View>
     );
   }
 
   const course = courseById(batch.courseId);
   const enrolled = studentsOfBatch(batch.id);
+  const full = enrolled.length >= batch.capacity;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.screen }}>
-      <AppHeader title={batch.code} subtitle={course?.title} back />
-
+    <>
+      <Stack.Screen options={{ title: batch.code }} />
       <Screen>
-        <BatchCard batch={batch} course={course} seatsTaken={seatsTaken(batch.id)} />
+        <Lead
+          overline={`${titleCase(batch.status)} · ${batch.mode}`}
+          title={course?.title ?? batch.code}
+        >
+          <View style={styles.seats}>
+            <Progress value={enrolled.length / batch.capacity} color={full ? colors.error : undefined} />
+            <Txt v="caption" color={full ? colors.error : colors.muted}>
+              {full ? `Full · ${batch.capacity} seats` : `${enrolled.length} of ${batch.capacity} seats taken`}
+            </Txt>
+          </View>
+        </Lead>
 
         <SectionHeader title="Schedule" />
-        <Card style={{ marginBottom: spacing.xl }}>
-          <InfoRow label="Course" value={course?.title} icon="bookshelf" />
-          <InfoRow label="Start Date" value={formatDate(batch.startDate)} icon="calendar-start" />
-          <InfoRow label="End Date" value={formatDate(batch.endDate)} icon="calendar-end" />
-          <InfoRow label="Duration" value={`${daysBetween(batch.startDate, batch.endDate)} days`} icon="timer-sand" />
-          <InfoRow label="Days" value={batch.days} icon="calendar-week" />
-          <InfoRow label="Time" value={`${batch.startTime} - ${batch.endTime}`} icon="clock-outline" />
-          <InfoRow label="Mode" value={batch.mode} icon="broadcast" />
-          <InfoRow label="Room" value={batch.room} icon="map-marker-outline" />
-          <InfoRow label="Capacity" value={`${enrolled.length} / ${batch.capacity}`} icon="account-group-outline" />
-          <InfoRow label="Status" value={batch.status} icon="progress-clock" />
-        </Card>
+        <Group>
+          <InfoRow label="Starts" value={formatDate(batch.startDate)} />
+          <InfoRow label="Ends" value={formatDate(batch.endDate)} />
+          <InfoRow label="Length" value={`${daysBetween(batch.startDate, batch.endDate)} days`} />
+          <InfoRow label="Days" value={batch.days} />
+          <InfoRow label="Time" value={`${batch.startTime} - ${batch.endTime}`} />
+          <InfoRow label="Room" value={batch.room} />
+        </Group>
 
-        <SectionHeader title="Enrolled Students" subtitle={`${enrolled.length} allocated`} />
+        <SectionHeader title={`Students (${enrolled.length})`} />
         {enrolled.length === 0 ? (
-          <Card>
+          <Group>
             <EmptyState
-              icon="account-off-outline"
-              title="No students allocated"
-              message="Approve a registration and allocate this batch to fill seats."
+              fill={false}
+              icon="account-outline"
+              title="No students in this batch"
+              body="Approve a registration and allocate it to this batch to fill seats."
             />
-          </Card>
+          </Group>
         ) : (
-          enrolled.map((student) => (
-            <StudentRow
-              key={student.id}
-              student={student}
-              courseTitle={course?.title}
-              batchCode={batch.code}
-              onPress={() =>
-                router.push({ pathname: '/(admin)/student/[id]', params: { id: student.id } })
-              }
-            />
-          ))
+          <Group separatorInset={AVATAR_INSET}>
+            {enrolled.map((student) => (
+              <StudentRow
+                key={student.id}
+                student={student}
+                showStatus
+                onPress={() => router.push({ pathname: '/(admin)/student/[id]', params: { id: student.id } })}
+              />
+            ))}
+          </Group>
         )}
       </Screen>
-    </View>
+    </>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  seats: { gap: spacing.sm, marginTop: spacing.md },
+});

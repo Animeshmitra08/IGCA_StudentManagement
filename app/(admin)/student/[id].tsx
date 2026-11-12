@@ -1,33 +1,36 @@
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import {
-  Avatar,
-  Button,
-  Dialog,
-  Icon,
-  Portal,
-  Snackbar,
-  Text,
-  TextInput,
-} from 'react-native-paper';
-import { useLocalSearchParams } from 'expo-router';
+import { Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Button, Dialog, Portal, Snackbar, TextInput } from 'react-native-paper';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppHeader } from '@/src/components/AppHeader';
-import { BatchCard } from '@/src/components/BatchCard';
-import { Screen } from '@/src/components/Screen';
+import { BatchRow } from '@/src/components/BatchRow';
+import { useDataGate } from '@/src/components/DataGate';
+import { DocumentsGroup } from '@/src/components/DocumentsGroup';
+import { ActionBar, Screen } from '@/src/components/Screen';
 import { StatusChip } from '@/src/components/StatusChip';
 import { StatusTimeline } from '@/src/components/StatusTimeline';
-import { Card, EmptyState, InfoRow, SectionHeader } from '@/src/components/ui';
+import {
+  Avatar,
+  EmptyState,
+  Group,
+  GroupBody,
+  InfoRow,
+  SectionHeader,
+  Separator,
+  Txt,
+} from '@/src/components/ui';
 import { useAuth } from '@/src/context/AuthContext';
 import { useData } from '@/src/context/DataContext';
 import { radius, spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
-import { formatDate, initials } from '@/src/utils/format';
+import { haptic } from '@/src/utils/feedback';
+import { formatDate } from '@/src/utils/format';
 
 export default function AdminStudentDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { colors } = useAppTheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const {
@@ -41,21 +44,29 @@ export default function AdminStudentDetail() {
     allocateBatch,
     activate,
   } = useData();
+  const gate = useDataGate('detail');
 
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
   const [rejectOpen, setRejectOpen] = useState(false);
   const [reason, setReason] = useState('');
+  const [reasonError, setReasonError] = useState(false);
   const [allocateOpen, setAllocateOpen] = useState(false);
   const [pickedBatch, setPickedBatch] = useState<string | null>(null);
+
+  if (gate) return gate;
 
   const student = studentById(id);
 
   if (!student) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.screen }}>
-        <AppHeader title="Student" back />
-        <EmptyState icon="account-question-outline" title="Student not found" />
+      <View style={[styles.root, { backgroundColor: colors.screen }]}>
+        <EmptyState
+          icon="account-question-outline"
+          title="Student not found"
+          body="This registration may have been removed."
+          action={{ label: 'Go back', onPress: () => router.back() }}
+        />
       </View>
     );
   }
@@ -68,9 +79,11 @@ export default function AdminStudentDetail() {
     setBusy(true);
     try {
       await action();
+      haptic.success();
       setToast(message);
     } catch (e) {
-      setToast(e instanceof Error ? e.message : 'Action failed');
+      haptic.failure();
+      setToast(e instanceof Error ? e.message : 'That did not work. Try again.');
     } finally {
       setBusy(false);
     }
@@ -81,7 +94,7 @@ export default function AdminStudentDetail() {
 
   const onReject = () => {
     if (!reason.trim()) {
-      setToast('Enter a rejection reason');
+      setReasonError(true);
       return;
     }
     setRejectOpen(false);
@@ -92,245 +105,187 @@ export default function AdminStudentDetail() {
     setReason('');
   };
 
+  const openAllocate = () => {
+    setPickedBatch(student.batchId);
+    setAllocateOpen(true);
+  };
+
   const onAllocate = () => {
-    if (!pickedBatch) {
-      setToast('Select a batch first');
-      return;
-    }
+    if (!pickedBatch) return;
     setAllocateOpen(false);
     void run(() => allocateBatch(student.id, pickedBatch), 'Batch allocated');
   };
 
-  const onActivate = () => run(() => activate(student.id), 'Enrolment activated');
+  const onActivate = () => run(() => activate(student.id), 'Enrolment is now active');
 
   /* --------------------------------------------------- action bar setup */
 
-  const actions: React.ReactNode[] = [];
+  const secondary = (label: string, onPress: () => void, destructive?: boolean) => (
+    <Button
+      key={label}
+      mode="outlined"
+      textColor={destructive ? colors.error : undefined}
+      style={styles.action}
+      contentStyle={styles.actionContent}
+      disabled={busy}
+      onPress={onPress}
+    >
+      {label}
+    </Button>
+  );
 
-  if (student.status === 'PENDING_APPROVAL') {
-    actions.push(
-      <Button
-        key="reject"
-        mode="outlined"
-        textColor={colors.error}
-        style={[styles.action, { borderColor: colors.error }]}
-        disabled={busy}
-        onPress={() => setRejectOpen(true)}
-      >
-        Reject
-      </Button>,
-      <Button key="approve" mode="contained" style={styles.action} loading={busy} disabled={busy} onPress={onApprove}>
-        Approve
-      </Button>,
-    );
-  } else if (student.status === 'APPROVED') {
-    actions.push(
-      <Button
-        key="reject"
-        mode="outlined"
-        textColor={colors.error}
-        style={[styles.action, { borderColor: colors.error }]}
-        disabled={busy}
-        onPress={() => setRejectOpen(true)}
-      >
-        Reject
-      </Button>,
-      <Button
-        key="allocate"
-        mode="contained"
-        icon="calendar-plus"
-        style={styles.action}
-        loading={busy}
-        disabled={busy}
-        onPress={() => {
-          setPickedBatch(student.batchId);
-          setAllocateOpen(true);
-        }}
-      >
-        Allocate Batch
-      </Button>,
-    );
-  } else if (student.status === 'ALLOCATED') {
-    actions.push(
-      <Button
-        key="change"
-        mode="outlined"
-        style={styles.action}
-        disabled={busy}
-        onPress={() => {
-          setPickedBatch(student.batchId);
-          setAllocateOpen(true);
-        }}
-      >
-        Change Batch
-      </Button>,
-      <Button key="activate" mode="contained" icon="check" style={styles.action} loading={busy} disabled={busy} onPress={onActivate}>
-        Mark Active
-      </Button>,
-    );
-  } else if (student.status === 'ACTIVE') {
-    actions.push(
-      <Button
-        key="change"
-        mode="outlined"
-        style={styles.action}
-        disabled={busy}
-        onPress={() => {
-          setPickedBatch(student.batchId);
-          setAllocateOpen(true);
-        }}
-      >
-        Change Batch
-      </Button>,
-    );
-  } else if (student.status === 'REJECTED') {
-    actions.push(
-      <Button key="reopen" mode="contained" icon="restore" style={styles.action} loading={busy} disabled={busy} onPress={onApprove}>
-        Re-open & Approve
-      </Button>,
-    );
-  }
+  const primary = (label: string, onPress: () => void) => (
+    <Button
+      key={label}
+      mode="contained"
+      style={styles.action}
+      contentStyle={styles.actionContent}
+      loading={busy}
+      disabled={busy}
+      onPress={onPress}
+    >
+      {label}
+    </Button>
+  );
+
+  const actions: React.ReactNode[] = (() => {
+    switch (student.status) {
+      case 'PENDING_APPROVAL':
+        return [secondary('Reject', () => setRejectOpen(true), true), primary('Approve', onApprove)];
+      case 'APPROVED':
+        return [secondary('Reject', () => setRejectOpen(true), true), primary('Allocate batch', openAllocate)];
+      case 'ALLOCATED':
+        return [secondary('Change batch', openAllocate), primary('Mark active', onActivate)];
+      case 'ACTIVE':
+        return [secondary('Change batch', openAllocate)];
+      case 'REJECTED':
+        return [primary('Reopen and approve', onApprove)];
+    }
+  })();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.screen }}>
-      <AppHeader title="Student Details" subtitle={student.registrationNo} back />
+    <View style={[styles.root, { backgroundColor: colors.screen }]}>
+      <Stack.Screen options={{ title: student.registrationNo }} />
 
-      <Screen>
-        <Card style={styles.hero}>
-          <Avatar.Text
-            size={64}
-            label={initials(student.fullName)}
-            style={{ backgroundColor: student.avatarColor }}
-            labelStyle={{ fontSize: 22, fontWeight: '700' }}
-            color="#FFFFFF"
-          />
-          <View style={{ flex: 1, gap: spacing.xs }}>
-            <Text variant="titleMedium" style={{ fontWeight: '800' }}>
-              {student.fullName}
-            </Text>
-            <Text variant="bodySmall" style={{ color: colors.muted }}>
-              {course?.title}
-            </Text>
-            <StatusChip status={student.status} />
-          </View>
-        </Card>
-
-        <SectionHeader title="Approval Progress" />
-        <Card style={styles.card}>
-          <StatusTimeline student={student} batchCode={batch?.code} />
-        </Card>
-
-        <SectionHeader title="Personal Information" />
-        <Card style={styles.card}>
-          <InfoRow label="Date of Birth" value={formatDate(student.dob)} icon="cake-variant-outline" />
-          <InfoRow label="Gender" value={student.gender} icon="gender-male-female" />
-          <InfoRow label="Blood Group" value={student.bloodGroup} icon="water-outline" />
-        </Card>
-
-        <SectionHeader title="Contact Information" />
-        <Card style={styles.card}>
-          <InfoRow label="Email" value={student.email} icon="email-outline" />
-          <InfoRow label="Phone" value={student.phone} icon="phone-outline" />
-          <InfoRow label="Address" value={student.address} icon="map-marker-outline" />
-          <InfoRow label="City / State" value={`${student.city}, ${student.state}`} icon="city-variant-outline" />
-          <InfoRow label="Pincode" value={student.pincode} icon="mailbox-outline" />
-          <InfoRow label="Guardian" value={student.guardianName} icon="account-child-outline" />
-          <InfoRow label="Guardian Phone" value={student.guardianPhone} icon="phone-outline" />
-        </Card>
-
-        <SectionHeader title="Education Information" />
-        <Card style={styles.card}>
-          <InfoRow label="Qualification" value={student.education.qualification} icon="certificate-outline" />
-          <InfoRow label="Institution" value={student.education.institution} icon="office-building-outline" />
-          <InfoRow label="Board" value={student.education.board} icon="bank-outline" />
-          <InfoRow label="Year of Passing" value={student.education.yearOfPassing} icon="calendar-outline" />
-          <InfoRow label="Percentage" value={`${student.education.percentage}%`} icon="percent-outline" />
-        </Card>
-
-        <SectionHeader title="Documents" subtitle={`${student.documents.length} uploaded`} />
-        <Card style={styles.card}>
-          {student.documents.length === 0 ? (
-            <EmptyState icon="file-outline" title="No documents uploaded" />
-          ) : (
-            student.documents.map((doc, index) => (
-              <View
-                key={doc.id}
-                style={[
-                  styles.doc,
-                  index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-                ]}
-              >
-                <View style={[styles.docIcon, { backgroundColor: colors.neutralContainer }]}>
-                  <Icon
-                    source={doc.type === 'PHOTO' ? 'image-outline' : 'file-document-outline'}
-                    size={18}
-                    color={colors.muted}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text variant="bodyMedium" style={{ fontWeight: '600' }} numberOfLines={1}>
-                    {doc.name}
-                  </Text>
-                  <Text variant="bodySmall" style={{ color: colors.muted }}>
-                    {doc.type.replace('_', ' ')} · {doc.size}
-                  </Text>
-                </View>
-                <Icon source="download-outline" size={18} color={colors.muted} />
+      <View style={styles.root}>
+        <Screen noBottomInset>
+          <View style={styles.identity}>
+            <Avatar name={student.fullName} size={56} />
+            <View style={styles.identityBody}>
+              <Txt v="title" accessibilityRole="header">
+                {student.fullName}
+              </Txt>
+              {!!course && (
+                <Txt muted numberOfLines={1}>
+                  {course.title}
+                </Txt>
+              )}
+              <View style={styles.chip}>
+                <StatusChip status={student.status} />
               </View>
-            ))
+            </View>
+          </View>
+
+          <SectionHeader title="Progress" />
+          {student.status === 'REJECTED' ? (
+            <StatusTimeline student={student} />
+          ) : (
+            <Group>
+              <GroupBody>
+                <StatusTimeline student={student} batchCode={batch?.code} />
+              </GroupBody>
+            </Group>
           )}
-        </Card>
 
-        {!!batch && (
-          <>
-            <SectionHeader title="Allocated Batch" />
-            <BatchCard batch={batch} course={course} seatsTaken={seatsTaken(batch.id)} compact />
-          </>
-        )}
+          {!!batch && (
+            <>
+              <SectionHeader title="Batch" />
+              <Group>
+                <BatchRow
+                  batch={batch}
+                  seatsTaken={seatsTaken(batch.id)}
+                  onPress={() => router.push({ pathname: '/(admin)/batch/[id]', params: { id: batch.id } })}
+                  pushes
+                />
+              </Group>
+            </>
+          )}
 
-        {student.status === 'REJECTED' && !!student.rejectionReason && (
-          <Card style={[styles.card, { backgroundColor: colors.errorContainer, borderWidth: 0 }]}>
-            <Text variant="bodySmall" style={{ fontWeight: '700', color: colors.error }}>
-              Rejection reason
-            </Text>
-            <Text variant="bodySmall" style={{ color: colors.onErrorContainer, marginTop: 4 }}>
-              {student.rejectionReason}
-            </Text>
-          </Card>
-        )}
-      </Screen>
+          <SectionHeader title="Personal" />
+          <Group>
+            <InfoRow label="Date of birth" value={formatDate(student.dob)} />
+            <InfoRow label="Gender" value={student.gender} />
+            <InfoRow label="Blood group" value={student.bloodGroup} />
+          </Group>
 
-      {actions.length > 0 && (
-        <View
-          style={[
-            styles.actionBar,
-            {
-              backgroundColor: colors.card,
-              borderColor: colors.border,
-              paddingBottom: insets.bottom + spacing.md,
-            },
-          ]}
-        >
-          {actions}
-        </View>
-      )}
+          <SectionHeader title="Contact" />
+          <Group>
+            <InfoRow label="Email" value={student.email} />
+            <InfoRow label="Phone" value={student.phone} />
+            <InfoRow label="Alternate phone" value={student.altPhone} />
+            <InfoRow label="Address" value={student.address} />
+            <InfoRow label="City" value={[student.city, student.state].filter(Boolean).join(', ')} />
+            <InfoRow label="Pincode" value={student.pincode} />
+            <InfoRow label="Guardian" value={student.guardianName} />
+            <InfoRow label="Guardian phone" value={student.guardianPhone} />
+          </Group>
+
+          <SectionHeader title="Education" />
+          <Group>
+            <InfoRow label="Qualification" value={student.education.qualification} />
+            <InfoRow label="Institution" value={student.education.institution} />
+            <InfoRow label="Board" value={student.education.board} />
+            <InfoRow label="Year of passing" value={student.education.yearOfPassing} />
+            <InfoRow label="Percentage" value={`${student.education.percentage}%`} />
+          </Group>
+
+          <SectionHeader title={`Documents (${student.documents.length})`} />
+          <DocumentsGroup documents={student.documents} />
+
+          <SectionHeader title="Application" />
+          <Group>
+            <InfoRow label="Applied on" value={formatDate(student.appliedOn)} />
+            <InfoRow label="Reviewed on" value={student.reviewedOn ? formatDate(student.reviewedOn) : null} />
+            <InfoRow label="Reviewed by" value={student.reviewedBy} />
+          </Group>
+        </Screen>
+
+        <Snackbar visible={!!toast} onDismiss={() => setToast('')} duration={3000}>
+          {toast}
+        </Snackbar>
+      </View>
+
+      <ActionBar>{actions}</ActionBar>
 
       {/* Reject reason */}
       <Portal>
-        <Dialog visible={rejectOpen} onDismiss={() => setRejectOpen(false)}>
-          <Dialog.Title>Reject registration</Dialog.Title>
-          <Dialog.Content>
-            <Text variant="bodySmall" style={{ color: colors.muted, marginBottom: spacing.md }}>
-              The reason is shown to {student.fullName} on their status screen.
-            </Text>
+        <Dialog
+          visible={rejectOpen}
+          onDismiss={() => setRejectOpen(false)}
+          style={{ borderRadius: radius.lg }}
+        >
+          <Dialog.Title>Reject registration?</Dialog.Title>
+          <Dialog.Content style={{ gap: spacing.md }}>
+            <Txt muted>{student.fullName} sees this reason on their status screen.</Txt>
             <TextInput
               mode="outlined"
               label="Reason"
               value={reason}
-              onChangeText={setReason}
+              onChangeText={(text) => {
+                setReason(text);
+                setReasonError(false);
+              }}
+              error={reasonError}
               multiline
               numberOfLines={3}
+              autoFocus
+              outlineStyle={{ borderRadius: radius.sm }}
             />
+            {reasonError && (
+              <Txt v="caption" color={colors.error}>
+                Enter a reason before rejecting.
+              </Txt>
+            )}
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setRejectOpen(false)}>Cancel</Button>
@@ -339,67 +294,88 @@ export default function AdminStudentDetail() {
             </Button>
           </Dialog.Actions>
         </Dialog>
+      </Portal>
 
-        {/* Batch allocation */}
-        <Dialog
-          visible={allocateOpen}
-          onDismiss={() => setAllocateOpen(false)}
-          style={{ maxHeight: '80%' }}
+      {/* Batch allocation: a modal screen, not a dialog, so the list has room. */}
+      <Modal
+        visible={allocateOpen}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setAllocateOpen(false)}
+      >
+        <View
+          style={[
+            styles.root,
+            { backgroundColor: colors.screen, paddingTop: Platform.OS === 'ios' ? 0 : insets.top },
+          ]}
         >
-          <Dialog.Title>Allocate batch</Dialog.Title>
-          <Dialog.Content style={{ paddingHorizontal: spacing.md }}>
-            <Text variant="bodySmall" style={{ color: colors.muted, marginBottom: spacing.md }}>
-              Batches for {course?.title}
-            </Text>
-            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
-              {candidateBatches.length === 0 ? (
-                <EmptyState icon="calendar-remove-outline" title="No batches for this course" />
-              ) : (
-                candidateBatches.map((item) => (
-                  <BatchCard
+          <View style={styles.sheetHeader}>
+            <Button onPress={() => setAllocateOpen(false)} style={styles.sheetButton}>
+              Cancel
+            </Button>
+            <Txt v="heading" style={styles.sheetTitle} accessibilityRole="header" chrome>
+              Allocate batch
+            </Txt>
+            <Button onPress={onAllocate} disabled={!pickedBatch} style={styles.sheetButton}>
+              Allocate
+            </Button>
+          </View>
+          <Separator />
+
+          <ScrollView contentContainerStyle={[styles.sheetBody, { paddingBottom: insets.bottom + spacing.xl }]}>
+            <Txt muted style={styles.sheetIntro}>
+              {course ? `Batches for ${course.title}` : 'Batches for this course'}
+            </Txt>
+            {candidateBatches.length === 0 ? (
+              <Group>
+                <EmptyState
+                  fill={false}
+                  icon="calendar-blank-outline"
+                  title="No batches for this course"
+                  body="Create a batch for this course first."
+                />
+              </Group>
+            ) : (
+              <Group separatorInset={spacing.lg + 22 + spacing.md}>
+                {candidateBatches.map((item) => (
+                  <BatchRow
                     key={item.id}
                     batch={item}
                     seatsTaken={seatsTaken(item.id)}
                     selected={pickedBatch === item.id}
                     onPress={() => setPickedBatch(item.id)}
-                    compact
                   />
-                ))
-              )}
-            </ScrollView>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setAllocateOpen(false)}>Cancel</Button>
-            <Button mode="contained" onPress={onAllocate} disabled={!pickedBatch}>
-              Allocate
-            </Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-
-      <Snackbar visible={!!toast} onDismiss={() => setToast('')} duration={3000}>
-        {toast}
-      </Snackbar>
+                ))}
+              </Group>
+            )}
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { flexDirection: 'row', gap: spacing.lg, alignItems: 'center', marginBottom: spacing.xl },
-  card: { marginBottom: spacing.lg },
-  doc: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
-  docIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionBar: {
+  root: { flex: 1 },
+  identity: {
     flexDirection: 'row',
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: spacing.lg,
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.xs,
+    paddingTop: spacing.sm,
   },
-  action: { flex: 1, borderRadius: radius.md },
+  identityBody: { flex: 1, gap: spacing.xs },
+  chip: { marginTop: spacing.xs },
+  action: { flex: 1 },
+  actionContent: { height: 48 },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 56,
+    paddingHorizontal: spacing.xs,
+  },
+  sheetButton: { minWidth: 88 },
+  sheetTitle: { flex: 1, textAlign: 'center' },
+  sheetBody: { padding: spacing.lg },
+  sheetIntro: { marginBottom: spacing.md, paddingHorizontal: spacing.xs },
 });

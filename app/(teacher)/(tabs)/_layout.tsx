@@ -1,47 +1,30 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Icon } from 'react-native-paper';
+import { SignOutButton } from '@/src/components/HeaderButton';
+import { tabIcon } from '@/src/components/TabIcon';
+import { tabScreenOptions } from '@/src/theme/navigation';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 
 export default function TeacherTabs() {
   const { colors } = useAppTheme();
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: {
-          backgroundColor: colors.card,
-          borderTopColor: colors.border,
-          height: 62,
-          paddingTop: 6,
-          paddingBottom: 8,
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-      }}
-    >
+    <Tabs screenOptions={tabScreenOptions(colors)}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Overview',
-          tabBarIcon: ({ color }) => <Icon source="view-dashboard-outline" size={22} color={color} />,
+          tabBarIcon: tabIcon('view-dashboard-outline', 'view-dashboard'),
+          headerRight: () => <SignOutButton />,
         }}
       />
       <Tabs.Screen
         name="students"
-        options={{
-          title: 'Students',
-          tabBarIcon: ({ color }) => <Icon source="account-group-outline" size={22} color={color} />,
-        }}
+        options={{ title: 'Students', tabBarIcon: tabIcon('account-group-outline', 'account-group') }}
       />
       <Tabs.Screen
         name="content"
-        options={{
-          title: 'Content',
-          tabBarIcon: ({ color }) => <Icon source="play-box-multiple-outline" size={22} color={color} />,
-        }}
+        options={{ title: 'Content', tabBarIcon: tabIcon('play-box-multiple-outline', 'play-box-multiple') }}
       />
     </Tabs>
   );

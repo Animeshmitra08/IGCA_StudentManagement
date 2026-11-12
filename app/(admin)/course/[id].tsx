@@ -1,15 +1,13 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Icon, Text } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
-import { AppHeader } from '@/src/components/AppHeader';
-import { BatchCard } from '@/src/components/BatchCard';
-import { ContentRow } from '@/src/components/ContentRow';
+import { BatchRow } from '@/src/components/BatchRow';
+import { useDataGate } from '@/src/components/DataGate';
+import { ModuleGroup } from '@/src/components/ModuleGroup';
 import { Screen } from '@/src/components/Screen';
-import { Card, EmptyState, InfoRow, Pill, SectionHeader, StatTile } from '@/src/components/ui';
+import { EmptyState, Group, InfoRow, Lead, SectionHeader } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
-import { radius, spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { formatCurrency } from '@/src/utils/format';
 
@@ -19,14 +17,19 @@ export default function AdminCourseDetail() {
   const router = useRouter();
   const { courseById, modulesOf, contentOf, courseContent, batchesOf, studentsOfCourse, seatsTaken } =
     useData();
+  const gate = useDataGate('detail');
+  if (gate) return gate;
 
   const course = courseById(id);
 
   if (!course) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.screen }}>
-        <AppHeader title="Course" back />
-        <EmptyState icon="book-alert-outline" title="Course not found" />
+      <View style={[styles.root, { backgroundColor: colors.screen }]}>
+        <EmptyState
+          icon="book-alert-outline"
+          title="Course not found"
+          action={{ label: 'Go back', onPress: () => router.back() }}
+        />
       </View>
     );
   }
@@ -37,107 +40,52 @@ export default function AdminCourseDetail() {
   const students = studentsOfCourse(course.id);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.screen }}>
-      <AppHeader title={course.title} subtitle={course.code} back />
-
+    <>
+      <Stack.Screen options={{ title: course.code }} />
       <Screen>
-        <Card style={[styles.hero, { backgroundColor: course.color }]}>
-          <Icon source={course.icon} size={28} color="#FFFFFF" />
-          <Text variant="titleMedium" style={styles.heroTitle}>
-            {course.title}
-          </Text>
-          <Text style={styles.heroSub}>{course.description}</Text>
-        </Card>
+        <Lead title={course.title} body={course.description} />
 
-        <View style={styles.grid}>
-          <StatTile label="Modules" value={modules.length} icon="folder-outline" tint={colors.primary} />
-          <StatTile label="Content" value={content.length} icon="play-box-outline" tint={colors.secondary} />
-        </View>
-        <View style={styles.grid}>
-          <StatTile label="Batches" value={batches.length} icon="calendar-month-outline" tint={colors.info} />
-          <StatTile label="Students" value={students.length} icon="account-group-outline" tint={colors.success} />
-        </View>
+        <SectionHeader title="Details" />
+        <Group>
+          <InfoRow label="Level" value={course.level} />
+          <InfoRow label="Duration" value={`${course.durationWeeks} weeks`} />
+          <InfoRow label="Fee" value={formatCurrency(course.fee)} />
+          <InfoRow label="Status" value={course.active ? 'Open for registration' : 'Closed'} />
+          <InfoRow label="Students" value={students.length} />
+        </Group>
 
-        <SectionHeader title="Course Information" />
-        <Card style={styles.card}>
-          <InfoRow label="Code" value={course.code} icon="identifier" />
-          <InfoRow label="Level" value={course.level} icon="signal-cellular-2" />
-          <InfoRow label="Duration" value={`${course.durationWeeks} weeks`} icon="calendar-range" />
-          <InfoRow label="Fee" value={formatCurrency(course.fee)} icon="currency-inr" />
-          <InfoRow label="Status" value={course.active ? 'Active' : 'Inactive'} icon="toggle-switch-outline" />
-        </Card>
-
-        <SectionHeader title="Modules & Content" subtitle={`${content.length} published items`} />
-        {modules.length === 0 && (
-          <Card>
-            <EmptyState icon="folder-open-outline" title="No modules created yet" />
-          </Card>
-        )}
-        {modules.map((module) => {
-          const items = contentOf(module.id);
-          return (
-            <Card key={module.id} style={styles.moduleCard}>
-              <View style={styles.moduleHead}>
-                <View style={[styles.moduleIndex, { backgroundColor: course.color + '1F' }]}>
-                  <Text style={{ fontWeight: '800', color: course.color }}>{module.order}</Text>
-                </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text variant="titleSmall" style={{ fontWeight: '700' }}>
-                    {module.title}
-                  </Text>
-                  <Text variant="bodySmall" style={{ color: colors.muted }} numberOfLines={2}>
-                    {module.description}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
-                <Pill icon="play-box-outline" label={`${items.length} items`} />
-              </View>
-
-              {items.map((item) => (
-                <ContentRow key={item.id} item={item} />
-              ))}
-            </Card>
-          );
-        })}
-
-        <SectionHeader title="Batches" subtitle={`${batches.length} scheduled`} />
+        <SectionHeader title={`Batches (${batches.length})`} />
         {batches.length === 0 ? (
-          <Card>
-            <EmptyState icon="calendar-remove-outline" title="No batches for this course" />
-          </Card>
+          <Group>
+            <EmptyState fill={false} icon="calendar-blank-outline" title="No batches for this course" />
+          </Group>
         ) : (
-          batches.map((batch) => (
-            <BatchCard
-              key={batch.id}
-              batch={batch}
-              seatsTaken={seatsTaken(batch.id)}
-              onPress={() =>
-                router.push({ pathname: '/(admin)/batch/[id]', params: { id: batch.id } })
-              }
-              compact
-            />
-          ))
+          <Group>
+            {batches.map((batch) => (
+              <BatchRow
+                key={batch.id}
+                batch={batch}
+                seatsTaken={seatsTaken(batch.id)}
+                onPress={() => router.push({ pathname: '/(admin)/batch/[id]', params: { id: batch.id } })}
+                pushes
+              />
+            ))}
+          </Group>
+        )}
+
+        <SectionHeader title={`Modules (${modules.length}) · ${content.length} items`} />
+        {modules.length === 0 ? (
+          <Group>
+            <EmptyState fill={false} icon="folder-open-outline" title="No modules yet" />
+          </Group>
+        ) : (
+          modules.map((module) => <ModuleGroup key={module.id} module={module} items={contentOf(module.id)} />)
         )}
       </Screen>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { gap: spacing.sm, borderWidth: 0, marginBottom: spacing.lg },
-  heroTitle: { color: '#FFFFFF', fontWeight: '800' },
-  heroSub: { color: 'rgba(255,255,255,0.85)', fontSize: 12, lineHeight: 18 },
-  grid: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
-  card: { marginBottom: spacing.lg },
-  moduleCard: { marginBottom: spacing.md, paddingBottom: spacing.xs },
-  moduleHead: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-  moduleIndex: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  root: { flex: 1 },
 });

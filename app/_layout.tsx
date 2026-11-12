@@ -4,10 +4,12 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeProvider } from '@react-navigation/native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
 import { DataProvider } from '@/src/context/DataContext';
+import { navigationTheme } from '@/src/theme/navigation';
 import { DarkTheme, LightTheme } from '@/src/theme/theme';
 
 /** Sends the signed-in user to their role's route group and blocks the others. */
@@ -52,12 +54,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PaperProvider theme={theme}>
-          <AuthProvider>
-            <DataProvider>
-              <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-              <RoleGate />
-            </DataProvider>
-          </AuthProvider>
+          <ThemeProvider value={navigationTheme(theme)}>
+            <AuthProvider>
+              <DataProvider>
+                <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+                <RoleGate />
+              </DataProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </PaperProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

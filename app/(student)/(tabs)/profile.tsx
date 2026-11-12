@@ -1,146 +1,115 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Avatar, Button, Icon, Text } from 'react-native-paper';
+import { Icon } from 'react-native-paper';
 
-import { AppHeader } from '@/src/components/AppHeader';
+import { useDataGate } from '@/src/components/DataGate';
+import { DocumentsGroup } from '@/src/components/DocumentsGroup';
+import { useConfirmSignOut } from '@/src/components/HeaderButton';
 import { Screen } from '@/src/components/Screen';
 import { StatusChip } from '@/src/components/StatusChip';
-import { Card, EmptyState, InfoRow, SectionHeader } from '@/src/components/ui';
-import { useAuth } from '@/src/context/AuthContext';
+import { Avatar, EmptyState, Group, InfoRow, Row, SectionHeader, Txt } from '@/src/components/ui';
 import { useCurrentStudent } from '@/src/hooks/useCurrentStudent';
-import { radius, spacing } from '@/src/theme/theme';
+import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
-import { formatDate, initials } from '@/src/utils/format';
+import { formatDate } from '@/src/utils/format';
 
 export default function StudentProfile() {
   const { colors } = useAppTheme();
-  const { signOut } = useAuth();
+  const confirmSignOut = useConfirmSignOut();
   const { student, course, batch } = useCurrentStudent();
+  const gate = useDataGate('detail');
+  if (gate) return gate;
+
+  const signOutGroup = (
+    <Group>
+      <Row
+        leading={<Icon source="logout" size={22} color={colors.error} />}
+        title="Sign out"
+        destructive
+        onPress={confirmSignOut}
+      />
+    </Group>
+  );
 
   if (!student) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.screen }}>
-        <AppHeader title="Profile" />
-        <EmptyState icon="account-question-outline" title="No profile found" />
-      </View>
+      <Screen tabbed>
+        <EmptyState icon="account-question-outline" title="No profile on this account" />
+        {signOutGroup}
+      </Screen>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.screen }}>
-      <AppHeader title="Profile" subtitle={student.registrationNo} />
-
-      <Screen>
-        <Card style={styles.hero}>
-          <Avatar.Text
-            size={72}
-            label={initials(student.fullName)}
-            style={{ backgroundColor: student.avatarColor }}
-            labelStyle={{ fontSize: 24, fontWeight: '700' }}
-            color="#FFFFFF"
-          />
-          <Text variant="titleMedium" style={{ fontWeight: '800', marginTop: spacing.md }}>
+    <Screen tabbed>
+      <View style={styles.identity}>
+        <Avatar name={student.fullName} size={56} />
+        <View style={styles.identityBody}>
+          <Txt v="title" accessibilityRole="header">
             {student.fullName}
-          </Text>
-          <Text variant="bodySmall" style={{ color: colors.muted }}>
+          </Txt>
+          <Txt muted numberOfLines={1}>
             {student.email}
-          </Text>
-          <View style={{ marginTop: spacing.sm }}>
+          </Txt>
+          <View style={styles.chip}>
             <StatusChip status={student.status} />
           </View>
-        </Card>
+        </View>
+      </View>
 
-        <SectionHeader title="Personal Information" />
-        <Card style={styles.card}>
-          <InfoRow label="Date of Birth" value={formatDate(student.dob)} icon="cake-variant-outline" />
-          <InfoRow label="Gender" value={student.gender} icon="gender-male-female" />
-          <InfoRow label="Blood Group" value={student.bloodGroup} icon="water-outline" />
-        </Card>
+      <SectionHeader title="Enrolment" />
+      <Group>
+        <InfoRow label="Registration no" value={student.registrationNo} />
+        <InfoRow label="Course" value={course?.title} />
+        <InfoRow label="Batch" value={batch?.code ?? 'Not allocated yet'} />
+        <InfoRow label="Applied on" value={formatDate(student.appliedOn)} />
+        <InfoRow label="Reviewed on" value={student.reviewedOn ? formatDate(student.reviewedOn) : 'Waiting for review'} />
+      </Group>
 
-        <SectionHeader title="Contact Information" />
-        <Card style={styles.card}>
-          <InfoRow label="Phone" value={student.phone} icon="phone-outline" />
-          <InfoRow label="Alternate" value={student.altPhone} icon="phone-plus-outline" />
-          <InfoRow label="Address" value={student.address} icon="map-marker-outline" />
-          <InfoRow label="City / State" value={`${student.city}, ${student.state}`} icon="city-variant-outline" />
-          <InfoRow label="Pincode" value={student.pincode} icon="mailbox-outline" />
-          <InfoRow label="Guardian" value={student.guardianName} icon="account-child-outline" />
-          <InfoRow label="Guardian Phone" value={student.guardianPhone} icon="phone-outline" />
-        </Card>
+      <SectionHeader title="Personal" />
+      <Group>
+        <InfoRow label="Date of birth" value={formatDate(student.dob)} />
+        <InfoRow label="Gender" value={student.gender} />
+        <InfoRow label="Blood group" value={student.bloodGroup} />
+      </Group>
 
-        <SectionHeader title="Education" />
-        <Card style={styles.card}>
-          <InfoRow label="Qualification" value={student.education.qualification} icon="certificate-outline" />
-          <InfoRow label="Institution" value={student.education.institution} icon="office-building-outline" />
-          <InfoRow label="Board" value={student.education.board} icon="bank-outline" />
-          <InfoRow label="Year" value={student.education.yearOfPassing} icon="calendar-outline" />
-          <InfoRow label="Percentage" value={`${student.education.percentage}%`} icon="percent-outline" />
-        </Card>
+      <SectionHeader title="Contact" />
+      <Group>
+        <InfoRow label="Phone" value={student.phone} />
+        <InfoRow label="Alternate phone" value={student.altPhone} />
+        <InfoRow label="Address" value={student.address} />
+        <InfoRow label="City" value={[student.city, student.state].filter(Boolean).join(', ')} />
+        <InfoRow label="Pincode" value={student.pincode} />
+        <InfoRow label="Guardian" value={student.guardianName} />
+        <InfoRow label="Guardian phone" value={student.guardianPhone} />
+      </Group>
 
-        <SectionHeader title="Enrolment" />
-        <Card style={styles.card}>
-          <InfoRow label="Course" value={course?.title} icon="bookshelf" />
-          <InfoRow label="Batch" value={batch?.code ?? 'Not allocated'} icon="account-group-outline" />
-          <InfoRow label="Applied On" value={formatDate(student.appliedOn)} icon="file-send-outline" />
-          <InfoRow label="Reviewed On" value={student.reviewedOn ? formatDate(student.reviewedOn) : 'Pending'} icon="clipboard-check-outline" />
-        </Card>
+      <SectionHeader title="Education" />
+      <Group>
+        <InfoRow label="Qualification" value={student.education.qualification} />
+        <InfoRow label="Institution" value={student.education.institution} />
+        <InfoRow label="Board" value={student.education.board} />
+        <InfoRow label="Year of passing" value={student.education.yearOfPassing} />
+        <InfoRow label="Percentage" value={`${student.education.percentage}%`} />
+      </Group>
 
-        <SectionHeader title="Documents" subtitle={`${student.documents.length} uploaded`} />
-        <Card style={styles.card}>
-          {student.documents.length === 0 && (
-            <EmptyState icon="file-outline" title="No documents uploaded" />
-          )}
-          {student.documents.map((doc, index) => (
-            <View
-              key={doc.id}
-              style={[
-                styles.doc,
-                index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-              ]}
-            >
-              <View style={[styles.docIcon, { backgroundColor: colors.neutralContainer }]}>
-                <Icon
-                  source={doc.type === 'PHOTO' ? 'image-outline' : 'file-document-outline'}
-                  size={18}
-                  color={colors.muted}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text variant="bodyMedium" style={{ fontWeight: '600' }} numberOfLines={1}>
-                  {doc.name}
-                </Text>
-                <Text variant="bodySmall" style={{ color: colors.muted }}>
-                  {doc.type.replace('_', ' ')} · {doc.size} · {formatDate(doc.uploadedOn)}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </Card>
+      <SectionHeader title={`Documents (${student.documents.length})`} />
+      <DocumentsGroup documents={student.documents} />
 
-        <Button
-          mode="contained-tonal"
-          icon="logout"
-          onPress={signOut}
-          style={styles.logout}
-          contentStyle={{ height: 46 }}
-        >
-          Sign Out
-        </Button>
-      </Screen>
-    </View>
+      <View style={styles.signOut}>{signOutGroup}</View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', paddingVertical: spacing.xl, marginBottom: spacing.xl },
-  card: { marginBottom: spacing.lg },
-  doc: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md },
-  docIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
+  identity: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.xs,
+    paddingTop: spacing.sm,
   },
-  logout: { marginTop: spacing.md, borderRadius: radius.md },
+  identityBody: { flex: 1, gap: spacing.xs },
+  chip: { marginTop: spacing.xs },
+  signOut: { marginTop: spacing.xxl },
 });

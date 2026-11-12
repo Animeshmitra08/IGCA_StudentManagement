@@ -1,12 +1,12 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { IconButton } from 'react-native-paper';
+import { Icon } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
-import { AppHeader } from '@/src/components/AppHeader';
-import { BatchCard } from '@/src/components/BatchCard';
+import { BatchRow } from '@/src/components/BatchRow';
+import { useDataGate } from '@/src/components/DataGate';
 import { Screen } from '@/src/components/Screen';
-import { Card, EmptyState, SectionHeader, StatTile } from '@/src/components/ui';
+import { EmptyState, Group, Row, SectionHeader, Txt } from '@/src/components/ui';
 import { useAuth } from '@/src/context/AuthContext';
 import { useData } from '@/src/context/DataContext';
 import { spacing } from '@/src/theme/theme';
@@ -15,17 +15,11 @@ import { useAppTheme } from '@/src/theme/useAppTheme';
 export default function TeacherOverview() {
   const { colors } = useAppTheme();
   const router = useRouter();
-  const { user, signOut } = useAuth();
-  const {
-    batches,
-    courseById,
-    seatsTaken,
-    studentsOfBatch,
-    courseContent,
-    modulesOf,
-    refresh,
-    refreshing,
-  } = useData();
+  const { user } = useAuth();
+  const { batches, courseById, seatsTaken, studentsOfBatch, courseContent, modulesOf, refresh, refreshing } =
+    useData();
+  const gate = useDataGate('list');
+  if (gate) return gate;
 
   const myCourseIds = user?.courseIds ?? [];
   const myBatches = batches.filter((b) => b.teacherId === user?.id);
@@ -34,46 +28,64 @@ export default function TeacherOverview() {
   const myModules = myCourseIds.flatMap((id) => modulesOf(id));
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.screen }}>
-      <AppHeader
-        title={`Hi, ${user?.name.split(' ')[0] ?? 'Teacher'}`}
-        subtitle={user?.designation}
-        right={<IconButton icon="logout" size={20} onPress={signOut} />}
-      />
-
-      <Screen refreshing={refreshing} onRefresh={refresh}>
-        <View style={styles.grid}>
-          <StatTile label="My Batches" value={myBatches.length} icon="calendar-month-outline" tint={colors.primary} />
-          <StatTile label="Students" value={myStudents.length} icon="account-group-outline" tint={colors.success} />
+    <Screen tabbed refreshing={refreshing} onRefresh={refresh}>
+      {!!user && (
+        <View style={styles.identity}>
+          <Txt v="heading">{user.name}</Txt>
+          {!!user.designation && <Txt muted>{user.designation}</Txt>}
         </View>
-        <View style={styles.grid}>
-          <StatTile label="Modules" value={myModules.length} icon="folder-outline" tint={colors.info} />
-          <StatTile label="Content" value={myContent.length} icon="play-box-outline" tint={colors.secondary} />
-        </View>
+      )}
 
-        <SectionHeader title="My Batches" subtitle="Batches assigned to you" />
-        {myBatches.length === 0 ? (
-          <Card>
-            <EmptyState icon="calendar-remove-outline" title="No batches assigned yet" />
-          </Card>
-        ) : (
-          myBatches.map((batch) => (
-            <BatchCard
+      <SectionHeader title={`Your batches (${myBatches.length})`} />
+      {myBatches.length === 0 ? (
+        <Group>
+          <EmptyState
+            fill={false}
+            icon="calendar-blank-outline"
+            title="No batches assigned yet"
+            body="Batches the admin assigns to you appear here."
+          />
+        </Group>
+      ) : (
+        <Group>
+          {myBatches.map((batch) => (
+            <BatchRow
               key={batch.id}
               batch={batch}
               course={courseById(batch.courseId)}
               seatsTaken={seatsTaken(batch.id)}
-              onPress={() =>
-                router.push({ pathname: '/(teacher)/batch/[id]', params: { id: batch.id } })
-              }
+              onPress={() => router.push({ pathname: '/(teacher)/batch/[id]', params: { id: batch.id } })}
+              pushes
             />
-          ))
-        )}
-      </Screen>
-    </View>
+          ))}
+        </Group>
+      )}
+
+      <SectionHeader title="Teaching" />
+      <Group>
+        <Row
+          leading={<Icon source="account-group-outline" size={22} color={colors.muted} />}
+          title="Students"
+          subtitle="Across all your batches"
+          trailing={<Txt v="bodyStrong" muted>{myStudents.length}</Txt>}
+          onPress={() => router.push('/(teacher)/(tabs)/students')}
+          pushes
+          accessibilityLabel={`Students, ${myStudents.length}`}
+        />
+        <Row
+          leading={<Icon source="play-box-multiple-outline" size={22} color={colors.muted} />}
+          title="Course content"
+          subtitle={`${myModules.length} modules`}
+          trailing={<Txt v="bodyStrong" muted>{myContent.length}</Txt>}
+          onPress={() => router.push('/(teacher)/(tabs)/content')}
+          pushes
+          accessibilityLabel={`Course content, ${myContent.length} items in ${myModules.length} modules`}
+        />
+      </Group>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
+  identity: { gap: 2, paddingHorizontal: spacing.xs, paddingTop: spacing.sm },
 });

@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "skills": {
+    "mobile-design-review": {
+      "source": "draftbit/mobile-taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-design-review/SKILL.md",
+      "computedHash": "03b79d9649a968c6d678d595a8fd14fdae3a3ffa399b8d742c91e30faec5d4a9"
+    },
+    "mobile-design-system": {
+      "source": "draftbit/mobile-taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-design-system/SKILL.md",
+      "computedHash": "64c2bb42482353b842bdb0682f40ab874f569a233bf239fd0061cb6d690dfe9c"
+    },
+    "mobile-nav-plan": {
+      "source": "draftbit/mobile-taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-nav-plan/SKILL.md",
+      "computedHash": "7e585cdca6c4deebd071d71ef60754dafa4a8259dbdc5356c67a41ded348dc74"
+    },
+    "mobile-redesign-app": {
+      "source": "draftbit/mobile-taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-redesign-app/SKILL.md",
+      "computedHash": "ba26403259d7837c2e836819e712b556360881bfd406d73018a72d562c431e89"
+    },
+    "mobile-redesign-screen": {
+      "source": "draftbit/mobile-taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-redesign-screen/SKILL.md",
+      "computedHash": "d00bfbc4054a89d1f397f9cf35804083c20cfb715cae11fd8f0e13ded209e2a8"
+    },
+    "mobile-taste": {
+      "source": "draftbit/mobile-taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/mobile-taste/SKILL.md",
+      "computedHash": "28e1e5daea628469d87df8f90587b0b2a8f3378c18502151a043b4f85b49fa4a"
+    }
+  }
+}

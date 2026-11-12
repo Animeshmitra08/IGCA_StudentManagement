@@ -1,7 +1,13 @@
+import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, type MD3Theme } from 'react-native-paper';
 import type { StudentStatus } from '@/src/types';
 
-/** Spacing / radius tokens used across every screen. */
+/**
+ * Design tokens. The reasoning behind every value lives in MOBILE-DESIGN.md at the
+ * project root - read it before changing anything here.
+ */
+
+/** 4/8pt spacing grid. Screen horizontal padding is always `lg` (16). */
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -11,18 +17,51 @@ export const spacing = {
   xxl: 32,
 } as const;
 
+/** One radius scale, applied by role: sm = inputs, md = groups/buttons, lg = dialogs. */
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  sm: 6,
+  md: 10,
+  lg: 14,
+  /** Status chips, filter chips and avatars only. */
   pill: 999,
 } as const;
 
-const brand = {
-  primary: '#4F46E5',
-  primaryDark: '#A5B4FC',
-  secondary: '#0891B2',
+/**
+ * Type scale on the system font. Screens use these through <Txt v="..."> instead of
+ * per-screen fontSize/fontWeight literals.
+ */
+export const type = {
+  /** One hero number per screen at most. */
+  display: { fontSize: 34, lineHeight: 40, fontWeight: '700' },
+  title: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
+  heading: { fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  body: { fontSize: 15, lineHeight: 21, fontWeight: '400' },
+  bodyStrong: { fontSize: 15, lineHeight: 21, fontWeight: '600' },
+  label: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  caption: { fontSize: 12, lineHeight: 16, fontWeight: '400' },
+} as const satisfies Record<string, TextStyle>;
+
+export type TypeVariant = keyof typeof type;
+
+/** Upper bound for Dynamic Type on chrome text (chips, bars). Body text is unbounded. */
+export const CHROME_FONT_SCALE = 1.3;
+
+/**
+ * Content is flat (hairlines, no shadows). `raised` is the only elevation level and is
+ * reserved for bars that sit above scrolling content.
+ */
+export const elevation: Record<'flat' | 'raised', ViewStyle> = {
+  flat: {},
+  raised: Platform.select<ViewStyle>({
+    ios: {
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+    },
+    android: { elevation: 8 },
+    default: { boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.06)' },
+  }) as ViewStyle,
 };
 
 export interface AppColors {
@@ -39,94 +78,135 @@ export interface AppColors {
   screen: string;
   card: string;
   border: string;
+  /** Press highlight and Android ripple colour. */
+  pressed: string;
 }
 
 export type AppTheme = MD3Theme & { colors: MD3Theme['colors'] & AppColors };
 
 export const LightTheme: AppTheme = {
   ...MD3LightTheme,
-  roundness: 3,
+  roundness: 2,
   colors: {
     ...MD3LightTheme.colors,
-    primary: brand.primary,
+    // The single accent. It also means "good / done" (see the RISK register).
+    primary: '#1E6B52',
     onPrimary: '#FFFFFF',
-    primaryContainer: '#E0E7FF',
-    onPrimaryContainer: '#1E1B4B',
-    secondary: brand.secondary,
+    primaryContainer: '#DCEFE7',
+    onPrimaryContainer: '#0E3B2D',
+    // Secondary and tertiary are neutral ink, so Paper never introduces a second hue.
+    secondary: '#3F3F46',
     onSecondary: '#FFFFFF',
-    secondaryContainer: '#CFFAFE',
-    background: '#F4F5F9',
+    secondaryContainer: '#E9E9EC',
+    onSecondaryContainer: '#18181B',
+    tertiary: '#3F3F46',
+    onTertiary: '#FFFFFF',
+    tertiaryContainer: '#E9E9EC',
+    onTertiaryContainer: '#18181B',
+    background: '#F7F7F8',
+    onBackground: '#18181B',
     surface: '#FFFFFF',
-    surfaceVariant: '#EEF0F6',
-    onSurfaceVariant: '#5B6273',
-    outline: '#D7DBE5',
-    outlineVariant: '#E7EAF1',
-    error: '#DC2626',
-    errorContainer: '#FEE2E2',
-    onErrorContainer: '#7F1D1D',
-    elevation: { ...MD3LightTheme.colors.elevation, level1: '#FFFFFF' },
+    onSurface: '#18181B',
+    surfaceVariant: '#EEEEF0',
+    onSurfaceVariant: '#4B4B55',
+    surfaceDisabled: 'rgba(24, 24, 27, 0.10)',
+    onSurfaceDisabled: 'rgba(24, 24, 27, 0.38)',
+    outline: '#8E8E99',
+    outlineVariant: '#E4E4E7',
+    error: '#B42318',
+    onError: '#FFFFFF',
+    errorContainer: '#FBE5E2',
+    onErrorContainer: '#7A1A10',
+    inverseSurface: '#27272A',
+    inverseOnSurface: '#F4F4F5',
+    inversePrimary: '#7FD1B3',
+    backdrop: 'rgba(9, 9, 11, 0.45)',
+    elevation: {
+      level0: 'transparent',
+      level1: '#FFFFFF',
+      level2: '#FFFFFF',
+      level3: '#FFFFFF',
+      level4: '#FFFFFF',
+      level5: '#FFFFFF',
+    },
 
-    success: '#059669',
+    success: '#1E6B52',
     onSuccess: '#FFFFFF',
-    successContainer: '#D1FAE5',
-    warning: '#B45309',
+    successContainer: '#DCEFE7',
+    warning: '#8A5A00',
     onWarning: '#FFFFFF',
-    warningContainer: '#FEF3C7',
-    info: '#2563EB',
-    infoContainer: '#DBEAFE',
-    neutralContainer: '#EEF0F6',
-    muted: '#6B7280',
-    screen: '#F4F5F9',
+    warningContainer: '#FBF0D9',
+    info: '#3A5A8C',
+    infoContainer: '#E6ECF5',
+    neutralContainer: '#EEEEF0',
+    muted: '#5F5F69',
+    screen: '#F7F7F8',
     card: '#FFFFFF',
-    border: '#E5E7EB',
+    border: '#E4E4E7',
+    pressed: 'rgba(24, 24, 27, 0.08)',
   },
 };
 
 export const DarkTheme: AppTheme = {
   ...MD3DarkTheme,
-  roundness: 3,
+  roundness: 2,
   colors: {
     ...MD3DarkTheme.colors,
-    primary: brand.primaryDark,
-    onPrimary: '#1E1B4B',
-    primaryContainer: '#312E81',
-    onPrimaryContainer: '#E0E7FF',
-    secondary: '#67E8F9',
-    onSecondary: '#083344',
-    secondaryContainer: '#164E63',
-    background: '#0B0F1A',
-    surface: '#141A28',
-    surfaceVariant: '#1E2637',
-    onSurfaceVariant: '#A3ACC2',
-    outline: '#334155',
-    outlineVariant: '#25304A',
-    error: '#F87171',
-    errorContainer: '#4C1D1D',
-    onErrorContainer: '#FEE2E2',
-    elevation: { ...MD3DarkTheme.colors.elevation, level1: '#141A28' },
+    primary: '#6FCBA9',
+    onPrimary: '#06301F',
+    primaryContainer: '#17473A',
+    onPrimaryContainer: '#CDEDE0',
+    secondary: '#D4D4D8',
+    onSecondary: '#18181B',
+    secondaryContainer: '#2E2E33',
+    onSecondaryContainer: '#F4F4F5',
+    tertiary: '#D4D4D8',
+    onTertiary: '#18181B',
+    tertiaryContainer: '#2E2E33',
+    onTertiaryContainer: '#F4F4F5',
+    background: '#0E0E10',
+    onBackground: '#F4F4F5',
+    surface: '#18181B',
+    onSurface: '#F4F4F5',
+    surfaceVariant: '#232327',
+    onSurfaceVariant: '#C4C4CC',
+    surfaceDisabled: 'rgba(244, 244, 245, 0.10)',
+    onSurfaceDisabled: 'rgba(244, 244, 245, 0.38)',
+    outline: '#6B6B76',
+    outlineVariant: '#2E2E33',
+    error: '#F1867A',
+    onError: '#4A0D06',
+    errorContainer: '#4A1A14',
+    onErrorContainer: '#FBE5E2',
+    inverseSurface: '#E4E4E7',
+    inverseOnSurface: '#18181B',
+    inversePrimary: '#1E6B52',
+    backdrop: 'rgba(0, 0, 0, 0.6)',
+    elevation: {
+      level0: 'transparent',
+      level1: '#18181B',
+      level2: '#1D1D21',
+      level3: '#222226',
+      level4: '#26262B',
+      level5: '#2A2A2F',
+    },
 
-    success: '#34D399',
-    onSuccess: '#052E23',
-    successContainer: '#064E3B',
-    warning: '#FBBF24',
-    onWarning: '#3B2400',
-    warningContainer: '#4A3005',
-    info: '#60A5FA',
-    infoContainer: '#1E3A8A',
-    neutralContainer: '#1E2637',
-    muted: '#94A3B8',
-    screen: '#0B0F1A',
-    card: '#141A28',
-    border: '#25304A',
+    success: '#6FCBA9',
+    onSuccess: '#06301F',
+    successContainer: '#17473A',
+    warning: '#E8B552',
+    onWarning: '#2B1D00',
+    warningContainer: '#40300C',
+    info: '#9DB7E0',
+    infoContainer: '#1F2D45',
+    neutralContainer: '#232327',
+    muted: '#A1A1AA',
+    screen: '#0E0E10',
+    card: '#18181B',
+    border: '#2E2E33',
+    pressed: 'rgba(244, 244, 245, 0.08)',
   },
 };
-
-export interface StatusMeta {
-  label: string;
-  icon: string;
-  color: keyof AppColors | 'primary' | 'error';
-  container: string;
-}
 
 /** Visual + copy mapping for every point in the approval lifecycle. */
 export const STATUS_META: Record<StudentStatus, { label: string; icon: string; description: string }> = {
@@ -157,20 +237,30 @@ export const STATUS_META: Record<StudentStatus, { label: string; icon: string; d
   },
 };
 
+/**
+ * Status colours. Approved and Allocated share the "in progress" tone and are told
+ * apart by icon and label; the accent is reserved for Active.
+ */
 export function statusColors(colors: AppTheme['colors'], status: StudentStatus) {
   switch (status) {
     case 'PENDING_APPROVAL':
       return { fg: colors.warning, bg: colors.warningContainer };
     case 'APPROVED':
-      return { fg: colors.info, bg: colors.infoContainer };
     case 'ALLOCATED':
-      return { fg: colors.primary, bg: colors.primaryContainer };
+      return { fg: colors.info, bg: colors.infoContainer };
     case 'ACTIVE':
       return { fg: colors.success, bg: colors.successContainer };
     case 'REJECTED':
       return { fg: colors.error, bg: colors.errorContainer };
   }
 }
+
+export const DOCUMENT_META = {
+  PHOTO: { icon: 'image-outline', label: 'Photo' },
+  ID_PROOF: { icon: 'card-account-details-outline', label: 'ID proof' },
+  MARKSHEET: { icon: 'file-document-outline', label: 'Marksheet' },
+  OTHER: { icon: 'file-outline', label: 'Other document' },
+} as const;
 
 export const CONTENT_META = {
   VIDEO: { icon: 'play-circle-outline', label: 'Video' },

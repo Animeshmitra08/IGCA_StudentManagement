@@ -12,6 +12,8 @@ import type {
 interface DataValue {
   loading: boolean;
   refreshing: boolean;
+  /** Set when the first load failed and there is nothing to show. */
+  error: string | null;
   courses: Course[];
   modules: CourseModule[];
   content: ContentItem[];
@@ -48,6 +50,8 @@ const DataContext = createContext<DataValue | undefined>(undefined);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -71,16 +75,24 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setStats(st);
     setModules(allModules);
     setContent(allContent);
+    setLoaded(true);
+    setError(null);
   }, []);
 
+  const describe = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong');
+
   useEffect(() => {
-    load().finally(() => setLoading(false));
+    load()
+      .catch((e) => setError(describe(e)))
+      .finally(() => setLoading(false));
   }, [load]);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await load();
+    } catch (e) {
+      setError(describe(e));
     } finally {
       setRefreshing(false);
     }
@@ -100,6 +112,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     return {
       loading,
       refreshing,
+      // Once data has loaded, a failed refresh keeps the last good data on screen.
+      error: loaded ? null : error,
       courses,
       modules,
       content: sortedContent,
@@ -130,7 +144,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       createBatch: (input) => run(() => api.createBatch(input)),
       resetData: () => run(() => api.reset()),
     };
-  }, [loading, refreshing, courses, modules, content, batches, students, stats, refresh, run]);
+  }, [loading, refreshing, error, loaded, courses, modules, content, batches, students, stats, refresh, run]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

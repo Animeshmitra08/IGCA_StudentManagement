@@ -1,11 +1,16 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Icon, Text } from 'react-native-paper';
-import { CONTENT_META, radius, spacing } from '@/src/theme/theme';
+import { Icon } from 'react-native-paper';
+import { Touchable, Txt } from './ui';
+import { CONTENT_META, spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { formatDate } from '@/src/utils/format';
 import type { ContentItem } from '@/src/types';
 
+/**
+ * One content item. Opening it shows a preview (not a push), so there is no chevron;
+ * the trailing control is the completion checkbox when the viewer can track progress.
+ */
 export function ContentRow({
   item,
   completed,
@@ -22,51 +27,58 @@ export function ContentRow({
   const { colors } = useAppTheme();
   const meta = CONTENT_META[item.type];
 
-  const tint =
-    item.type === 'VIDEO'
-      ? colors.primary
-      : item.type === 'ASSIGNMENT'
-        ? colors.warning
-        : item.type === 'IMAGE'
-          ? colors.secondary
-          : colors.info;
+  const details = [
+    meta.label,
+    item.duration,
+    item.fileSize,
+    item.dueDate ? `Due ${formatDate(item.dueDate)}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
-  return (
-    <Pressable
-      onPress={locked ? undefined : onPress}
-      style={({ pressed }) => [
-        styles.row,
-        { borderColor: colors.border, opacity: locked ? 0.55 : pressed ? 0.7 : 1 },
-      ]}
-    >
-      <View style={[styles.icon, { backgroundColor: tint + '1A' }]}>
-        <Icon source={locked ? 'lock-outline' : meta.icon} size={18} color={locked ? colors.muted : tint} />
-      </View>
-
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text variant="bodyMedium" style={styles.title} numberOfLines={1}>
+  const body = (
+    <>
+      <Icon source={locked ? 'lock-outline' : meta.icon} size={22} color={colors.muted} />
+      <View style={styles.body}>
+        <Txt v="bodyStrong" muted={locked} numberOfLines={1}>
           {item.title}
-        </Text>
-        <Text style={{ color: colors.muted, fontSize: 11.5 }} numberOfLines={1}>
-          {meta.label}
-          {item.duration ? ` · ${item.duration}` : ''}
-          {` · ${item.fileSize}`}
-          {item.dueDate ? ` · due ${formatDate(item.dueDate)}` : ''}
-        </Text>
+        </Txt>
+        <Txt v="caption" muted numberOfLines={1}>
+          {details}
+        </Txt>
       </View>
 
-      {onToggleComplete && !locked ? (
-        <Pressable onPress={onToggleComplete} hitSlop={10}>
+      {!!onToggleComplete && !locked && (
+        <Pressable
+          onPress={onToggleComplete}
+          hitSlop={10}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: !!completed }}
+          accessibilityLabel={`Mark ${item.title} as completed`}
+          android_ripple={{ color: colors.pressed, borderless: true, radius: 20 }}
+          style={styles.check}
+        >
           <Icon
             source={completed ? 'check-circle' : 'circle-outline'}
-            size={22}
+            size={24}
             color={completed ? colors.success : colors.outline}
           />
         </Pressable>
-      ) : (
-        <Icon source="chevron-right" size={20} color={colors.muted} />
       )}
-    </Pressable>
+    </>
+  );
+
+  if (!onPress || locked) {
+    return (
+      <View style={styles.row} accessibilityLabel={locked ? `${item.title}, locked` : undefined}>
+        {body}
+      </View>
+    );
+  }
+  return (
+    <Touchable onPress={onPress} style={styles.row} accessibilityLabel={`${item.title}, ${meta.label}`}>
+      {body}
+    </Touchable>
   );
 }
 
@@ -75,15 +87,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingVertical: spacing.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    minHeight: 56,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
-  icon: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: { fontWeight: '600' },
+  body: { flex: 1, gap: 2 },
+  check: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', marginRight: -spacing.sm },
 });

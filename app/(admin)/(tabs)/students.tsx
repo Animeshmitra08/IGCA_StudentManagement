@@ -1,14 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { Searchbar, Text } from 'react-native-paper';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { AppHeader } from '@/src/components/AppHeader';
-import { Screen } from '@/src/components/Screen';
+import { useDataGate } from '@/src/components/DataGate';
+import { GroupedList } from '@/src/components/Screen';
 import { StudentRow } from '@/src/components/StudentRow';
-import { Card, EmptyState } from '@/src/components/ui';
+import { AVATAR_INSET, EmptyState, FilterChips, SearchField } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
-import { radius, spacing } from '@/src/theme/theme';
+import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import type { StudentStatus } from '@/src/types';
 
@@ -28,11 +27,12 @@ export default function AdminStudents() {
   const router = useRouter();
   const params = useLocalSearchParams<{ filter?: string }>();
   const { students, courseById, batchById, refresh, refreshing } = useData();
+  const gate = useDataGate('list');
 
   const [filter, setFilter] = useState<Filter>((params.filter as Filter) ?? 'PENDING_APPROVAL');
   const [query, setQuery] = useState('');
 
-  // Keep the tab in sync when the dashboard deep links into a specific bucket.
+  // Keep the tab in sync when the dashboard links into a specific bucket.
   const routeFilter = params.filter as Filter | undefined;
   const [lastRouteFilter, setLastRouteFilter] = useState(routeFilter);
   if (routeFilter && routeFilter !== lastRouteFilter) {
@@ -63,89 +63,66 @@ export default function AdminStudents() {
       .sort((a, b) => b.appliedOn.localeCompare(a.appliedOn));
   }, [students, filter, query]);
 
+  if (gate) return gate;
+
+  const searching = query.trim().length > 0;
+  const filterLabel = FILTERS.find((f) => f.key === filter)?.label.toLowerCase();
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.screen }}>
-      <AppHeader title="Student Management" subtitle={`${students.length} registrations`} />
-
-      <View style={[styles.toolbar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Searchbar
-          placeholder="Search name, reg no, email"
-          value={query}
-          onChangeText={setQuery}
-          style={[styles.search, { backgroundColor: colors.surfaceVariant }]}
-          inputStyle={{ fontSize: 14, minHeight: 0 }}
-          icon="magnify"
-          elevation={0}
-        />
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filters}
-        >
-          {FILTERS.map((item) => {
-            const active = filter === item.key;
-            return (
-              <Text
-                key={item.key}
-                onPress={() => setFilter(item.key)}
-                style={[
-                  styles.filterChip,
-                  {
-                    backgroundColor: active ? colors.primary : colors.surfaceVariant,
-                    color: active ? colors.onPrimary : colors.onSurfaceVariant,
-                  },
-                ]}
-              >
-                {item.label} · {counts[item.key]}
-              </Text>
-            );
-          })}
-        </ScrollView>
+    <View style={[styles.root, { backgroundColor: colors.screen }]}>
+      <View style={styles.search}>
+        <SearchField placeholder="Name, reg. no, email or phone" value={query} onChangeText={setQuery} />
       </View>
+      <FilterChips
+        items={FILTERS.map((item) => ({ ...item, count: counts[item.key] }))}
+        value={filter}
+        onChange={setFilter}
+      />
 
-      <Screen refreshing={refreshing} onRefresh={refresh}>
-        {visible.length === 0 ? (
-          <Card>
+      <GroupedList
+        tabbed
+        data={visible}
+        keyExtractor={(s) => s.id}
+        separatorInset={AVATAR_INSET}
+        refreshing={refreshing}
+        onRefresh={refresh}
+        renderItem={(student) => (
+          <StudentRow
+            student={student}
+            courseTitle={courseById(student.courseId)?.title}
+            batchCode={batchById(student.batchId)?.code}
+            showStatus={filter === 'ALL'}
+            onPress={() => router.push({ pathname: '/(admin)/student/[id]', params: { id: student.id } })}
+          />
+        )}
+        empty={
+          searching ? (
             <EmptyState
               icon="account-search-outline"
-              title="No students found"
-              message="Try a different filter or search term."
+              title="No matches"
+              body={`No ${filter === 'ALL' ? '' : `${filterLabel} `}students match "${query.trim()}".`}
+              action={{ label: 'Clear search', onPress: () => setQuery('') }}
             />
-          </Card>
-        ) : (
-          visible.map((student) => (
-            <StudentRow
-              key={student.id}
-              student={student}
-              courseTitle={courseById(student.courseId)?.title}
-              batchCode={batchById(student.batchId)?.code}
-              onPress={() =>
-                router.push({ pathname: '/(admin)/student/[id]', params: { id: student.id } })
-              }
+          ) : filter !== 'ALL' ? (
+            <EmptyState
+              icon="account-outline"
+              title={`No ${filterLabel} students`}
+              action={{ label: 'Show all students', onPress: () => setFilter('ALL') }}
             />
-          ))
-        )}
-      </Screen>
+          ) : (
+            <EmptyState
+              icon="account-outline"
+              title="No registrations yet"
+              body="Students appear here once they register."
+            />
+          )
+        }
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  toolbar: {
-    paddingTop: spacing.md,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    gap: spacing.sm,
-  },
-  search: { marginHorizontal: spacing.lg, borderRadius: radius.md, height: 42 },
-  filters: { paddingHorizontal: spacing.lg, gap: spacing.sm },
-  filterChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    fontSize: 12,
-    fontWeight: '700',
-    overflow: 'hidden',
-  },
+  root: { flex: 1 },
+  search: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xs },
 });

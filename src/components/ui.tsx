@@ -1,41 +1,162 @@
-import React from 'react';
-import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { Icon, Text } from 'react-native-paper';
-import { radius, spacing } from '@/src/theme/theme';
+import React, { useEffect, useRef } from 'react';
+import {
+  AccessibilityInfo,
+  Animated,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type PressableProps,
+  type StyleProp,
+  type TextProps,
+  type ViewStyle,
+} from 'react-native';
+import { Button, Icon, Searchbar } from 'react-native-paper';
+import { CHROME_FONT_SCALE, radius, spacing, type, type TypeVariant } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
+import { initials } from '@/src/utils/format';
 
-/* ------------------------------------------------------------------ Card */
+/* ------------------------------------------------------------------- Txt */
 
-export function Card({
-  children,
+/**
+ * Text on the type scale. `chrome` bounds Dynamic Type for text inside fixed-size
+ * controls (chips, bars); body text scales freely.
+ */
+export function Txt({
+  v = 'body',
+  muted,
+  color,
+  chrome,
   style,
-  onPress,
-  padded = true,
-}: {
-  children: React.ReactNode;
+  ...rest
+}: TextProps & { v?: TypeVariant; muted?: boolean; color?: string; chrome?: boolean }) {
+  const { colors } = useAppTheme();
+  return (
+    <Text
+      {...rest}
+      maxFontSizeMultiplier={chrome ? CHROME_FONT_SCALE : rest.maxFontSizeMultiplier}
+      style={[type[v], { color: color ?? (muted ? colors.muted : colors.onSurface) }, style]}
+    />
+  );
+}
+
+/* ------------------------------------------------------------- Touchable */
+
+/** Press feedback primitive: bounded ripple on Android, highlight elsewhere. */
+export function Touchable({
+  style,
+  children,
+  accessibilityRole = 'button',
+  ...rest
+}: Omit<PressableProps, 'style' | 'children'> & {
   style?: StyleProp<ViewStyle>;
-  onPress?: () => void;
-  padded?: boolean;
+  children: React.ReactNode;
 }) {
   const { colors } = useAppTheme();
-  const body = (
-    <View
-      style={[
-        styles.card,
-        { backgroundColor: colors.card, borderColor: colors.border },
-        padded && styles.cardPadded,
+  return (
+    <Pressable
+      {...rest}
+      accessibilityRole={accessibilityRole}
+      android_ripple={{ color: colors.pressed }}
+      style={({ pressed }) => [
         style,
+        pressed && Platform.OS !== 'android' && { backgroundColor: colors.pressed },
       ]}
     >
       {children}
+    </Pressable>
+  );
+}
+
+/* ----------------------------------------------------------------- Group */
+
+/**
+ * Grouped-list section: one flat surface with hairlines between its children.
+ * This is the default way to group content; there are no shadowed cards.
+ */
+export function Group({
+  children,
+  style,
+  separatorInset = true,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+  /** Left inset of the hairlines; pass AVATAR_INSET for rows that lead with an avatar. */
+  separatorInset?: boolean | number;
+}) {
+  const { colors } = useAppTheme();
+  const items = React.Children.toArray(children).filter(Boolean);
+  return (
+    <View style={[styles.group, { backgroundColor: colors.card, borderColor: colors.border }, style]}>
+      {items.map((child, index) => (
+        <React.Fragment key={index}>
+          {index > 0 && <Separator inset={separatorInset} />}
+          {child}
+        </React.Fragment>
+      ))}
     </View>
   );
+}
 
-  if (!onPress) return body;
+/** Hairline. `inset` true = screen padding; a number = custom left inset (e.g. past an avatar). */
+export function Separator({ inset }: { inset?: boolean | number }) {
+  const { colors } = useAppTheme();
+  const marginLeft = inset === true ? spacing.lg : typeof inset === 'number' ? inset : 0;
+  return <View style={[styles.separator, { backgroundColor: colors.border, marginLeft }]} />;
+}
+
+/** Plain padded block inside a Group, for content that isn't a row (timeline, progress). */
+export function GroupBody({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
+  return <View style={[styles.groupBody, style]}>{children}</View>;
+}
+
+/** Thin progress track on the neutral ramp. */
+export function Progress({ value, color, height = 4 }: { value: number; color?: string; height?: number }) {
+  const { colors } = useAppTheme();
+  const pct = Math.max(0, Math.min(1, value));
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.75 : 1 })}>
-      {body}
-    </Pressable>
+    <View
+      style={[styles.track, { height, backgroundColor: colors.neutralContainer }]}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(pct * 100) }}
+    >
+      <View style={{ width: `${pct * 100}%`, height, backgroundColor: color ?? colors.primary }} />
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ Lead */
+
+/**
+ * Top block of a screen's content: the full title the native header is too narrow
+ * for, a supporting line, and optional extras (chip, progress).
+ */
+export function Lead({
+  title,
+  body,
+  overline,
+  children,
+}: {
+  title: string;
+  body?: string;
+  overline?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <View style={styles.lead}>
+      {!!overline && (
+        <Txt v="label" muted>
+          {overline}
+        </Txt>
+      )}
+      <Txt v="title" accessibilityRole="header">
+        {title}
+      </Txt>
+      {!!body && <Txt muted>{body}</Txt>}
+      {children}
+    </View>
   );
 }
 
@@ -43,190 +164,492 @@ export function Card({
 
 export function SectionHeader({
   title,
-  subtitle,
   action,
+  first,
 }: {
   title: string;
-  subtitle?: string;
-  action?: React.ReactNode;
+  action?: { label: string; onPress: () => void };
+  /** First section on a screen: no extra space above. */
+  first?: boolean;
 }) {
   const { colors } = useAppTheme();
   return (
-    <View style={styles.sectionHeader}>
-      <View style={{ flex: 1 }}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          {title}
-        </Text>
-        {!!subtitle && (
-          <Text variant="bodySmall" style={{ color: colors.muted, marginTop: 2 }}>
-            {subtitle}
-          </Text>
-        )}
-      </View>
-      {action}
+    <View style={[styles.sectionHeader, first && { marginTop: 0 }]}>
+      <Txt v="label" muted style={{ flex: 1 }} accessibilityRole="header">
+        {title}
+      </Txt>
+      {!!action && (
+        <Pressable
+          onPress={action.onPress}
+          accessibilityRole="button"
+          hitSlop={14}
+          android_ripple={{ color: colors.pressed, borderless: true }}
+          style={({ pressed }) => pressed && Platform.OS !== 'android' && { opacity: 0.5 }}
+        >
+          <Txt v="label" color={colors.primary}>
+            {action.label}
+          </Txt>
+        </Pressable>
+      )}
     </View>
   );
 }
 
-/* --------------------------------------------------------------- StatTile */
+/* ------------------------------------------------------------------- Row */
 
-export function StatTile({
-  label,
-  value,
-  icon,
-  tint,
+/**
+ * List row. `pushes` draws the chevron and must only be set when tapping the row
+ * pushes a screen; a row can be pressable without pushing.
+ */
+export function Row({
+  title,
+  subtitle,
+  meta,
+  leading,
+  trailing,
   onPress,
-  style,
+  pushes,
+  destructive,
+  accessibilityLabel,
 }: {
-  label: string;
-  value: number | string;
-  icon: string;
-  tint: string;
+  title: string;
+  subtitle?: string;
+  meta?: string;
+  leading?: React.ReactNode;
+  trailing?: React.ReactNode;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  pushes?: boolean;
+  destructive?: boolean;
+  accessibilityLabel?: string;
 }) {
   const { colors } = useAppTheme();
-  return (
-    <Card onPress={onPress} style={[styles.statTile, style]}>
-      <View style={[styles.statIcon, { backgroundColor: tint + '22' }]}>
-        <Icon source={icon} size={18} color={tint} />
+  const body = (
+    <>
+      {leading}
+      <View style={styles.rowBody}>
+        <Txt v="bodyStrong" color={destructive ? colors.error : undefined} numberOfLines={1}>
+          {title}
+        </Txt>
+        {!!subtitle && (
+          <Txt v="caption" muted numberOfLines={1}>
+            {subtitle}
+          </Txt>
+        )}
+        {!!meta && (
+          <Txt v="caption" muted numberOfLines={1}>
+            {meta}
+          </Txt>
+        )}
       </View>
-      <Text variant="headlineSmall" style={styles.statValue}>
-        {value}
-      </Text>
-      <Text variant="bodySmall" style={{ color: colors.muted }} numberOfLines={1}>
-        {label}
-      </Text>
-    </Card>
+      {trailing}
+      {pushes && <Icon source="chevron-right" size={20} color={colors.muted} />}
+    </>
+  );
+
+  if (!onPress) return <View style={styles.row}>{body}</View>;
+  return (
+    <Touchable onPress={onPress} style={styles.row} accessibilityLabel={accessibilityLabel ?? title}>
+      {body}
+    </Touchable>
   );
 }
 
 /* ---------------------------------------------------------------- InfoRow */
 
-export function InfoRow({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value?: string | number | null;
-  icon?: string;
-}) {
-  const { colors } = useAppTheme();
+export function InfoRow({ label, value }: { label: string; value?: string | number | null }) {
+  const empty = value === null || value === undefined || value === '';
   return (
     <View style={styles.infoRow}>
-      {!!icon && <Icon source={icon} size={16} color={colors.muted} />}
-      <Text variant="bodySmall" style={{ color: colors.muted, flex: 1 }}>
+      <Txt muted style={styles.infoLabel}>
         {label}
-      </Text>
-      <Text variant="bodyMedium" style={styles.infoValue} numberOfLines={2}>
-        {value === null || value === undefined || value === '' ? '--' : String(value)}
-      </Text>
+      </Txt>
+      <Txt v={empty ? 'body' : 'bodyStrong'} muted={empty} style={styles.infoValue} numberOfLines={3}>
+        {empty ? 'Not provided' : String(value)}
+      </Txt>
+    </View>
+  );
+}
+
+/* ----------------------------------------------------------------- Avatar */
+
+/** Separator inset that lines hairlines up with row text after a 40pt avatar. */
+export const AVATAR_INSET = spacing.lg + 40 + spacing.md;
+
+/** The app's one avatar style: initials on a neutral surface. */
+export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+  const { colors } = useAppTheme();
+  return (
+    <View
+      style={[
+        styles.avatar,
+        { width: size, height: size, backgroundColor: colors.neutralContainer },
+      ]}
+    >
+      <Txt v={size >= 56 ? 'heading' : 'label'} color={colors.onSurfaceVariant} chrome>
+        {initials(name)}
+      </Txt>
     </View>
   );
 }
 
 /* ------------------------------------------------------------- EmptyState */
 
+/**
+ * Zero state for a data surface. Centred on purpose (the one place that is correct).
+ * Pass the action that fixes it: populate, clear filters, or retry.
+ */
 export function EmptyState({
   icon = 'inbox-outline',
   title,
-  message,
+  body,
+  action,
+  fill = true,
 }: {
   icon?: string;
   title: string;
-  message?: string;
+  body?: string;
+  action?: { label: string; onPress: () => void };
+  /** Take the remaining height and centre vertically. */
+  fill?: boolean;
 }) {
   const { colors } = useAppTheme();
   return (
-    <View style={styles.empty}>
-      <View style={[styles.emptyIcon, { backgroundColor: colors.neutralContainer }]}>
-        <Icon source={icon} size={28} color={colors.muted} />
-      </View>
-      <Text variant="titleSmall" style={{ marginTop: spacing.md }}>
+    <View style={[styles.empty, fill && styles.emptyFill]}>
+      <Icon source={icon} size={48} color={colors.muted} />
+      <Txt v="heading" style={styles.emptyTitle}>
         {title}
-      </Text>
-      {!!message && (
-        <Text
-          variant="bodySmall"
-          style={{ color: colors.muted, textAlign: 'center', marginTop: spacing.xs }}
-        >
-          {message}
-        </Text>
+      </Txt>
+      {!!body && (
+        <Txt muted style={styles.emptyBody}>
+          {body}
+        </Txt>
+      )}
+      {!!action && (
+        <Button mode="outlined" onPress={action.onPress} style={styles.emptyAction}>
+          {action.label}
+        </Button>
       )}
     </View>
   );
 }
 
-/* ------------------------------------------------------------------ Pill */
+/* ----------------------------------------------------------------- Notice */
 
-export function Pill({
-  label,
-  color,
-  background,
+type NoticeTone = 'neutral' | 'info' | 'warning' | 'error';
+
+/** Inline message on a tinted background. */
+export function Notice({
   icon,
+  tone = 'neutral',
+  title,
+  message,
+  action,
+  style,
 }: {
-  label: string;
-  color?: string;
-  background?: string;
-  icon?: string;
+  icon: string;
+  tone?: NoticeTone;
+  title?: string;
+  message?: string;
+  action?: { label: string; onPress: () => void };
+  style?: StyleProp<ViewStyle>;
 }) {
   const { colors } = useAppTheme();
-  const fg = color ?? colors.onSurfaceVariant;
+  const tones: Record<NoticeTone, { fg: string; bg: string }> = {
+    neutral: { fg: colors.onSurfaceVariant, bg: colors.neutralContainer },
+    info: { fg: colors.info, bg: colors.infoContainer },
+    warning: { fg: colors.warning, bg: colors.warningContainer },
+    error: { fg: colors.error, bg: colors.errorContainer },
+  };
+  const t = tones[tone];
+
   return (
-    <View style={[styles.pill, { backgroundColor: background ?? colors.neutralContainer }]}>
-      {!!icon && <Icon source={icon} size={12} color={fg} />}
-      <Text style={{ color: fg, fontSize: 11, fontWeight: '600' }}>{label}</Text>
+    <View style={[styles.notice, { backgroundColor: t.bg }, style]}>
+      <Icon source={icon} size={20} color={t.fg} />
+      <View style={styles.noticeBody}>
+        {!!title && (
+          <Txt v="bodyStrong" color={t.fg}>
+            {title}
+          </Txt>
+        )}
+        {!!message && (
+          <Txt v="caption" color={t.fg}>
+            {message}
+          </Txt>
+        )}
+      </View>
+      {!!action && (
+        <Pressable
+          onPress={action.onPress}
+          accessibilityRole="button"
+          hitSlop={14}
+          android_ripple={{ color: colors.pressed, borderless: true }}
+          style={({ pressed }) => pressed && Platform.OS !== 'android' && { opacity: 0.5 }}
+        >
+          <Txt v="label" color={t.fg}>
+            {action.label}
+          </Txt>
+        </Pressable>
+      )}
     </View>
   );
 }
 
+/* ------------------------------------------------------------ FilterChips */
+
+/** Horizontally scrolling single-select chips. */
+export function FilterChips<T extends string>({
+  items,
+  value,
+  onChange,
+}: {
+  items: { key: T; label: string; count?: number }[];
+  value: T;
+  onChange: (key: T) => void;
+}) {
+  const { colors } = useAppTheme();
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.chips}
+      style={styles.chipScroll}
+    >
+      {items.map((item) => {
+        const active = item.key === value;
+        const fg = active ? colors.screen : colors.onSurfaceVariant;
+        return (
+          <Pressable
+            key={item.key}
+            onPress={() => onChange(item.key)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={item.count === undefined ? item.label : `${item.label}, ${item.count}`}
+            // 36pt visual height + slop = 44pt target.
+            hitSlop={{ top: 4, bottom: 4 }}
+            android_ripple={{ color: colors.pressed }}
+            style={({ pressed }) => [
+              styles.chip,
+              {
+                backgroundColor: active ? colors.onSurface : colors.card,
+                borderColor: active ? colors.onSurface : colors.border,
+              },
+              pressed && Platform.OS !== 'android' && { opacity: 0.6 },
+            ]}
+          >
+            <Txt v="label" color={fg} chrome>
+              {item.label}
+            </Txt>
+            {item.count !== undefined && (
+              <Txt v="label" color={fg} chrome style={styles.chipCount}>
+                {item.count}
+              </Txt>
+            )}
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+/* ------------------------------------------------------------ SearchField */
+
+export function SearchField({
+  value,
+  onChangeText,
+  placeholder,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+}) {
+  const { colors } = useAppTheme();
+  return (
+    <Searchbar
+      placeholder={placeholder}
+      value={value}
+      onChangeText={onChangeText}
+      icon="magnify"
+      elevation={0}
+      autoCorrect={false}
+      autoCapitalize="none"
+      returnKeyType="search"
+      style={[styles.search, { backgroundColor: colors.card, borderColor: colors.border }]}
+      inputStyle={styles.searchInput}
+      placeholderTextColor={colors.muted}
+      iconColor={colors.muted}
+    />
+  );
+}
+
+/* -------------------------------------------------------------- Skeletons */
+
+/** One shared opacity loop for every placeholder block (native driver, UI thread). */
+function usePulse() {
+  const pulse = useRef(new Animated.Value(0.5)).current;
+  useEffect(() => {
+    let loop: Animated.CompositeAnimation | undefined;
+    let cancelled = false;
+    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+      if (cancelled || reduced) return;
+      loop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulse, { toValue: 0.5, duration: 800, useNativeDriver: true }),
+        ]),
+      );
+      loop.start();
+    });
+    return () => {
+      cancelled = true;
+      loop?.stop();
+    };
+  }, [pulse]);
+  return pulse;
+}
+
+function Bone({ width, height = 12 }: { width: ViewStyle['width']; height?: number }) {
+  const { colors } = useAppTheme();
+  return (
+    <View style={{ width, height, borderRadius: radius.sm, backgroundColor: colors.neutralContainer }} />
+  );
+}
+
+/** Loading placeholder that mirrors a list of rows. */
+export function SkeletonList({ rows = 7, avatar = true }: { rows?: number; avatar?: boolean }) {
+  const { colors } = useAppTheme();
+  const pulse = usePulse();
+  return (
+    <Animated.View
+      style={{ opacity: pulse }}
+      accessibilityRole="progressbar"
+      accessibilityLabel="Loading"
+    >
+      {Array.from({ length: rows }, (_, i) => (
+        <View key={i} style={styles.row}>
+          {avatar && <View style={[styles.avatar, styles.boneAvatar, { backgroundColor: colors.neutralContainer }]} />}
+          <View style={[styles.rowBody, { gap: spacing.sm }]}>
+            <Bone width={i % 2 ? '55%' : '70%'} height={14} />
+            <Bone width={i % 2 ? '80%' : '45%'} />
+          </View>
+        </View>
+      ))}
+    </Animated.View>
+  );
+}
+
+/** Loading placeholder that mirrors a detail screen: a lead block and two groups. */
+export function SkeletonDetail() {
+  const { colors } = useAppTheme();
+  const pulse = usePulse();
+  return (
+    <Animated.View
+      style={[styles.skeletonDetail, { opacity: pulse }]}
+      accessibilityRole="progressbar"
+      accessibilityLabel="Loading"
+    >
+      <Bone width="60%" height={22} />
+      <Bone width="40%" />
+      {[0, 1].map((g) => (
+        <View
+          key={g}
+          style={[styles.group, styles.skeletonGroup, { backgroundColor: colors.card, borderColor: colors.border }]}
+        >
+          {[0, 1, 2].map((r) => (
+            <View key={r} style={styles.skeletonLine}>
+              <Bone width="30%" />
+              <Bone width="35%" />
+            </View>
+          ))}
+        </View>
+      ))}
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: radius.lg,
+  group: {
+    borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
-  cardPadded: { padding: spacing.lg },
+  separator: { height: StyleSheet.hairlineWidth },
+  groupBody: { padding: spacing.lg, gap: spacing.sm },
+  lead: { gap: spacing.xs, paddingHorizontal: spacing.xs, paddingTop: spacing.sm },
+  track: { borderRadius: radius.pill, overflow: 'hidden' },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xs,
     gap: spacing.sm,
   },
-  sectionTitle: { fontWeight: '700' },
-  statTile: { flex: 1, minWidth: 140, padding: spacing.md, gap: 2 },
-  statIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.md,
+  row: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
+    gap: spacing.md,
+    minHeight: 56,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
-  statValue: { fontWeight: '800' },
+  rowBody: { flex: 1, gap: 2 },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: 7,
+    gap: spacing.md,
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
   },
-  infoValue: { flex: 1.4, textAlign: 'right', fontWeight: '600' },
-  empty: { alignItems: 'center', paddingVertical: spacing.xxl },
-  emptyIcon: {
-    width: 64,
-    height: 64,
-    borderRadius: radius.pill,
+  infoLabel: { flex: 1 },
+  infoValue: { flex: 1.5, textAlign: 'right' },
+  avatar: { borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  boneAvatar: { width: 40, height: 40 },
+  empty: {
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.xxl,
+    maxWidth: 400,
+    alignSelf: 'center',
   },
-  pill: {
+  emptyFill: { flex: 1, justifyContent: 'center' },
+  emptyTitle: { marginTop: spacing.md, textAlign: 'center' },
+  emptyBody: { marginTop: spacing.xs, textAlign: 'center' },
+  emptyAction: { marginTop: spacing.lg },
+  notice: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: radius.sm,
-    alignSelf: 'flex-start',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+  },
+  noticeBody: { flex: 1, gap: 2 },
+  chipScroll: { flexGrow: 0 },
+  chips: { paddingHorizontal: spacing.lg, gap: spacing.sm, paddingVertical: spacing.xs },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    height: 36,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+  },
+  chipCount: { opacity: 0.7 },
+  search: {
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    height: 44,
+  },
+  searchInput: { ...type.body, minHeight: 0 },
+  skeletonDetail: { padding: spacing.lg, gap: spacing.md },
+  skeletonGroup: { marginTop: spacing.md },
+  skeletonLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    minHeight: 44,
+    paddingHorizontal: spacing.lg,
   },
 });

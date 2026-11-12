@@ -1,0 +1,435 @@
+{
+  "tool": "mobile-redesign-app",
+  "version": 1,
+  "date": "2026-11-12",
+  "passes": {
+    "static": "grep checklist + ten-category code inspection, all 20 route files and 9 shared components",
+    "live": "Expo web export in headless Chrome at 390x844, light mode, 24 screens across login, register, admin, teacher and student flows"
+  },
+  "designScore": "C+",
+  "slopScore": "B",
+  "categoryValues": {
+    "navigation": 1,
+    "anatomy": 2.5,
+    "typography": 3,
+    "color": 3,
+    "surfaces": 2,
+    "states": 2.5,
+    "interaction": 2.5,
+    "forms": 3,
+    "performance": 3,
+    "copy": 3
+  },
+  "categories": {
+    "navigation": "D",
+    "anatomy": "C+",
+    "typography": "B",
+    "color": "B",
+    "surfaces": "C",
+    "states": "C+",
+    "interaction": "C+",
+    "forms": "B",
+    "performance": "B",
+    "copy": "B"
+  },
+  "dialsAsBuilt": {
+    "expression": 7,
+    "motion": 1,
+    "density": 3
+  },
+  "findings": [
+    {
+      "id": "FINDING-001",
+      "impact": "high",
+      "category": "navigation",
+      "summary": "Register wizard: Android hardware/gesture back exits the whole 5-step form and loses the data, while the header back button steps back one step",
+      "where": "app/(auth)/register.tsx",
+      "status": "fixed",
+      "resolution": "usePreventRemove steps back through the wizard on header back, Android back and iOS swipe (device check pending)"
+    },
+    {
+      "id": "FINDING-002",
+      "impact": "medium",
+      "category": "navigation",
+      "summary": "Custom floating tab bar and custom headers on every screen at EXPRESSION below 8 (chrome lags content); tab items have no press feedback",
+      "where": "src/components/FloatingTabBar.tsx, src/components/AppHeader.tsx, three (tabs)/_layout.tsx",
+      "status": "fixed",
+      "resolution": "Native headers and native tab bar via src/theme/navigation.ts; AppHeader and FloatingTabBar retired"
+    },
+    {
+      "id": "FINDING-003",
+      "impact": "medium",
+      "category": "navigation",
+      "summary": "Session and role gating done by a useEffect + router.replace in the root layout instead of layout guards; a wrong-role screen can render before the redirect",
+      "where": "app/_layout.tsx",
+      "status": "open",
+      "resolution": "Needs a navigation change (layout guards / Stack.Protected); gated, not done in this run"
+    },
+    {
+      "id": "FINDING-004",
+      "impact": "medium",
+      "category": "navigation",
+      "summary": "Sign out is a single unconfirmed tap (header icon on admin and teacher home, button on student profile)",
+      "where": "app/(admin)/(tabs)/index.tsx, app/(teacher)/(tabs)/index.tsx, app/(student)/(tabs)/profile.tsx",
+      "status": "fixed",
+      "resolution": "Sign out confirms via confirmDestructive (header button and profile row); verified on web"
+    },
+    {
+      "id": "FINDING-005",
+      "impact": "polish",
+      "category": "navigation",
+      "summary": "Tab label 'My Course' is two words",
+      "where": "app/(student)/(tabs)/_layout.tsx",
+      "status": "fixed",
+      "resolution": "Tab label is 'Course'"
+    },
+    {
+      "id": "FINDING-006",
+      "impact": "polish",
+      "category": "navigation",
+      "summary": "Detail routes have no stack anchor, so a cold-start deep link would land with a dead back button (not reachable today: the session is not persisted)",
+      "where": "app/(admin)/_layout.tsx, app/(teacher)/_layout.tsx, app/(student)/_layout.tsx",
+      "status": "open",
+      "resolution": "Unreachable while the session is not persisted"
+    },
+    {
+      "id": "FINDING-007",
+      "impact": "medium",
+      "category": "navigation",
+      "summary": "Allocate-batch picker is a scrolling list of batch cards crammed inside a dialog; by the container rules it is a modal screen",
+      "where": "app/(admin)/student/[id].tsx",
+      "status": "fixed",
+      "resolution": "Allocate batch is a pageSheet modal screen with Cancel / Allocate, radio BatchRows"
+    },
+    {
+      "id": "FINDING-008",
+      "impact": "medium",
+      "category": "anatomy",
+      "tell": 23,
+      "summary": "Scrollables use a fixed 32pt bottom padding instead of the bottom inset, so detail screens can end under the home indicator or Android nav bar",
+      "where": "src/components/Screen.tsx",
+      "status": "fixed",
+      "resolution": "Screen, GroupedList and ActionBar pad by the bottom inset"
+    },
+    {
+      "id": "FINDING-009",
+      "impact": "medium",
+      "category": "anatomy",
+      "summary": "Screen title repeated in content under the header (course detail, student course, batch detail) and long header titles truncate at 22pt ('React Native Developm...')",
+      "where": "app/(admin)/course/[id].tsx, app/(student)/(tabs)/course.tsx, app/(admin)/batch/[id].tsx, app/(teacher)/batch/[id].tsx",
+      "status": "fixed",
+      "resolution": "Header shows a short id (code / reg no / Module n); the full title lives once in the Lead block"
+    },
+    {
+      "id": "FINDING-010",
+      "impact": "medium",
+      "category": "anatomy",
+      "summary": "Fixed hero bands with decorative circles take 170-215pt of every viewport on dashboards and profile and never collapse",
+      "where": "src/components/AppHeader.tsx, app/(auth)/login.tsx",
+      "status": "fixed",
+      "resolution": "Hero bands and decorative circles removed everywhere"
+    },
+    {
+      "id": "FINDING-011",
+      "impact": "medium",
+      "category": "typography",
+      "summary": "No type scale tokens: 30 fontSize literals and 51 fontWeight literals in screens and components, including fractional sizes",
+      "where": "app/, src/components/",
+      "status": "fixed",
+      "resolution": "Zero fontSize/fontWeight literals in app/ and src/components; all text through <Txt v>"
+    },
+    {
+      "id": "FINDING-012",
+      "impact": "medium",
+      "category": "typography",
+      "summary": "No Dynamic Type bounds: zero maxFontSizeMultiplier on custom chrome text (tab labels, header titles, chips, buttons)",
+      "where": "app/, src/components/",
+      "status": "fixed",
+      "resolution": "chrome text (chips, counters, step label) capped at CHROME_FONT_SCALE; native header/tab text is platform-owned"
+    },
+    {
+      "id": "FINDING-013",
+      "impact": "polish",
+      "category": "typography",
+      "summary": "Meta text at 10.5-11.5pt; weight 800 used for titles, stats and card titles alike, flattening hierarchy",
+      "where": "app/, src/components/",
+      "status": "fixed",
+      "resolution": "Type scale tops at 700 for display/title; meta text is 12pt caption"
+    },
+    {
+      "id": "FINDING-014",
+      "impact": "medium",
+      "category": "color",
+      "summary": "Accent lock broken: blue primary and coral secondary both act as accents, with cyan info close to the primary",
+      "where": "src/theme/theme.ts",
+      "status": "fixed",
+      "resolution": "One accent (#1E6B52); secondary/tertiary are neutral ink"
+    },
+    {
+      "id": "FINDING-015",
+      "impact": "medium",
+      "category": "color",
+      "tell": 6,
+      "summary": "17 inline hex/rgba values in screens and components",
+      "where": "app/, src/components/",
+      "status": "fixed",
+      "resolution": "Zero hex/rgba in screens and components"
+    },
+    {
+      "id": "FINDING-016",
+      "impact": "polish",
+      "category": "color",
+      "summary": "Muted text #64748B on the #F4F7FC screen background is 4.4:1, just under AA for small text",
+      "where": "src/theme/theme.ts",
+      "status": "fixed",
+      "resolution": "Muted #5F5F69 on #F7F7F8"
+    },
+    {
+      "id": "FINDING-017",
+      "impact": "polish",
+      "category": "color",
+      "tell": 12,
+      "summary": "Primary saturation 83%; saturated per-student initials avatars on every row",
+      "where": "src/theme/theme.ts, src/components/StudentRow.tsx",
+      "status": "fixed",
+      "resolution": "Avatars are initials on the neutral surface"
+    },
+    {
+      "id": "FINDING-018",
+      "impact": "medium",
+      "category": "surfaces",
+      "tell": 3,
+      "summary": "Card-stack screens: register 6, admin student detail 6, profile 5, course detail 5 card wrappers; every list row is its own shadowed card",
+      "where": "app/, src/components/ui.tsx",
+      "status": "fixed",
+      "resolution": "Grouped lists with hairlines replace shadowed card stacks"
+    },
+    {
+      "id": "FINDING-019",
+      "impact": "medium",
+      "category": "surfaces",
+      "tell": 4,
+      "summary": "Icon chip rows: 17 tinted rounded icon badges leading rows, cards, stat tiles and documents",
+      "where": "src/components/ui.tsx (IconBadge) and callers",
+      "status": "fixed",
+      "resolution": "IconBadge removed; plain 22-24pt glyphs where an icon carries meaning"
+    },
+    {
+      "id": "FINDING-020",
+      "impact": "medium",
+      "category": "surfaces",
+      "tell": 11,
+      "summary": "Oversized radii and no shape lock: cards 20, hero/modal/tab bar 28, login hero 36, inputs 14, pill buttons, computed badge radii",
+      "where": "src/theme/theme.ts and callers",
+      "status": "fixed",
+      "resolution": "One radius scale: sm 6 inputs, md 10 groups/buttons, lg 14 dialogs/modals, pill for chips/avatars"
+    },
+    {
+      "id": "FINDING-021",
+      "impact": "medium",
+      "category": "surfaces",
+      "tell": 8,
+      "summary": "Stat header: four equal stats in the admin and teacher hero, plus 2x2 stat-tile grids on the admin dashboard and course detail",
+      "where": "app/(admin)/(tabs)/index.tsx, app/(teacher)/(tabs)/index.tsx, app/(admin)/course/[id].tsx",
+      "status": "fixed",
+      "resolution": "One hero number on the admin dashboard; stat tiles replaced by grouped count rows"
+    },
+    {
+      "id": "FINDING-022",
+      "impact": "polish",
+      "category": "surfaces",
+      "tell": 10,
+      "summary": "Pills that carry no state ('3 items', mode) and card-in-card panels inside batch cards",
+      "where": "src/components/BatchCard.tsx, module cards",
+      "status": "fixed",
+      "resolution": "Stateless pills and card-in-card panels removed"
+    },
+    {
+      "id": "FINDING-023",
+      "impact": "high",
+      "category": "states",
+      "tell": 37,
+      "summary": "While data loads, list screens show their empty state ('No students found', 'No student record linked'); only the admin dashboard reads the loading flag, as a bare spinner",
+      "where": "all data screens",
+      "status": "fixed",
+      "resolution": "useDataGate shows skeletons before any empty/not-found state on every data screen"
+    },
+    {
+      "id": "FINDING-024",
+      "impact": "medium",
+      "category": "states",
+      "tell": 38,
+      "summary": "No error state: a failed load is an unhandled rejection that leaves empty screens with no retry (latent while the API is a local mock)",
+      "where": "src/context/DataContext.tsx",
+      "status": "fixed",
+      "resolution": "Error state with Try again when the first load fails; last good data kept on failed refresh"
+    },
+    {
+      "id": "FINDING-025",
+      "impact": "polish",
+      "category": "states",
+      "summary": "Filtered and search empty states have no action to clear the filter or search",
+      "where": "app/(admin)/(tabs)/students.tsx, app/(teacher)/(tabs)/students.tsx, app/(admin)/(tabs)/batches.tsx",
+      "status": "fixed",
+      "resolution": "Search/filter empty states offer Clear search / Show all"
+    },
+    {
+      "id": "FINDING-026",
+      "impact": "medium",
+      "category": "interaction",
+      "tell": 35,
+      "summary": "Press feedback is an instant opacity/scale swap with no spring and no Android ripple; tab items, filter chips and hero stats have weak or no feedback",
+      "where": "src/components/ui.tsx, src/components/FloatingTabBar.tsx",
+      "status": "partial",
+      "resolution": "Android ripple + pressed highlight on every touchable; no spring scale (motion dial 1)"
+    },
+    {
+      "id": "FINDING-027",
+      "impact": "medium",
+      "category": "interaction",
+      "tell": 15,
+      "summary": "Chevron on rows that do not navigate: content rows on admin course detail and teacher content have no onPress",
+      "where": "src/components/ContentRow.tsx",
+      "status": "fixed",
+      "resolution": "Chevron only when the row pushes; content rows open a preview without a chevron"
+    },
+    {
+      "id": "FINDING-028",
+      "impact": "medium",
+      "category": "interaction",
+      "tell": 19,
+      "summary": "Touch targets under 44pt (filter chips 36pt, compact text buttons, 18pt remove icon); custom card Pressables have no accessibilityRole",
+      "where": "src/components/ui.tsx, app/(auth)/register.tsx",
+      "status": "fixed",
+      "resolution": "44pt targets (chips 36 + slop, header buttons 44, checkbox 44); Touchable defaults accessibilityRole"
+    },
+    {
+      "id": "FINDING-029",
+      "impact": "polish",
+      "category": "interaction",
+      "summary": "No haptics on confirmed outcomes (approve, reject, allocate, submit) although expo-haptics is installed",
+      "where": "app/(admin)/student/[id].tsx, app/(auth)/register.tsx",
+      "status": "fixed",
+      "resolution": "haptic.success/failure on approve, reject, allocate, activate, register submit and failed validation"
+    },
+    {
+      "id": "FINDING-030",
+      "impact": "medium",
+      "category": "forms",
+      "tell": 34,
+      "summary": "Zero autofill props: no textContentType/autoComplete on any email, password, name, phone or address input",
+      "where": "app/(auth)/login.tsx, app/(auth)/register.tsx",
+      "status": "fixed",
+      "resolution": "autoComplete + textContentType on login and every register identity/contact/password field"
+    },
+    {
+      "id": "FINDING-031",
+      "impact": "medium",
+      "category": "forms",
+      "summary": "Date of birth is free text with the format hint in the label instead of the system date picker",
+      "where": "app/(auth)/register.tsx",
+      "status": "partial",
+      "resolution": "Still free text (no date-picker dependency installed); placeholder, example hint and clearer error added"
+    },
+    {
+      "id": "FINDING-032",
+      "impact": "polish",
+      "category": "forms",
+      "summary": "No returnKeyType/onSubmitEditing chain; the keyboard action key does not submit sign-in",
+      "where": "app/(auth)/login.tsx, app/(auth)/register.tsx",
+      "status": "partial",
+      "resolution": "Login chains email -> password -> go; register fields do not chain yet"
+    },
+    {
+      "id": "FINDING-033",
+      "impact": "high",
+      "category": "performance",
+      "tell": 13,
+      "summary": "ScrollView-of-map for unbounded data: every student, batch and course list renders through the Screen ScrollView",
+      "where": "src/components/Screen.tsx and list screens",
+      "status": "fixed",
+      "resolution": "Students, batches and courses lists are virtualized (GroupedList / FlatList)"
+    },
+    {
+      "id": "FINDING-034",
+      "impact": "polish",
+      "category": "performance",
+      "summary": "One DataContext for everything; every mutation reloads all tables and re-renders every mounted screen",
+      "where": "src/context/DataContext.tsx",
+      "status": "open",
+      "resolution": "Data layer unchanged; out of scope for a visual redesign"
+    },
+    {
+      "id": "FINDING-035",
+      "impact": "medium",
+      "category": "copy",
+      "tell": 30,
+      "summary": "Greeting headers: 'Hi, Ananya', 'Hi, Ritu', 'Welcome back, {name}'",
+      "where": "three dashboard index.tsx files",
+      "status": "fixed",
+      "resolution": "No greeting headers; dashboards titled by purpose"
+    },
+    {
+      "id": "FINDING-036",
+      "impact": "medium",
+      "category": "copy",
+      "summary": "Internal enum jargon in user copy ('move them to ALLOCATED', raw RUNNING/UPCOMING, 'ID PROOF') and developer notes shipped as UI text ('No storage is wired up yet')",
+      "where": "app/, src/components/BatchCard.tsx",
+      "status": "fixed",
+      "resolution": "Enum jargon and developer notes replaced with plain copy"
+    },
+    {
+      "id": "FINDING-037",
+      "impact": "polish",
+      "category": "copy",
+      "summary": "App identity mismatch: app.json says 'IGCA', the login screen says 'Student Management'; a few cute strings ('Inbox zero', 'You are the first one here')",
+      "where": "app.json, app/(auth)/login.tsx",
+      "status": "open",
+      "resolution": "Login says 'Student Management', app.json says 'IGCA'; needs an owner decision"
+    }
+  ],
+  "trunkTest": {
+    "tabRoots": "PASS (code + web render)",
+    "detailScreens": "PASS, except admin course detail PARTIAL (title truncates)",
+    "login": "PARTIAL on 'what app is this' (name mismatch with app.json)",
+    "deepLinkedDetail": "N/A: session is not persisted, so no detail screen can be entered cold"
+  },
+  "accessibilityWinsToKeep": [
+    "accessibilityRole + label on header buttons and tab items",
+    "selected state on filter chips and tabs",
+    "checkbox role + state on content completion toggle",
+    "status chips pair colour with an icon and a label"
+  ],
+  "unverified": [
+    "native iOS and Android rendering (web render only)",
+    "keyboard: submit visible with keyboard open, both platforms",
+    "splash to first screen (no white flash)",
+    "scroll performance on the longest list",
+    "tab bar and headers at 1.3x font scale",
+    "Android edge-to-edge insets",
+    "dark mode (tokens exist; not rendered in this pass)"
+  ],
+  "redesign": {
+    "date": "2026-11-12",
+    "run": "Screens migrated onto the token system and shared components; navigation chrome made native",
+    "verified": {
+      "static": "tsc --noEmit 0 errors; expo lint clean; grep checklist: zero inline hex, zero fontSize/fontWeight literals, zero em dashes, Alert.alert only inside confirmDestructive",
+      "live": "Expo web export in headless Chrome at 390x844, light AND dark mode, 25 screens across login, register, admin, teacher and student flows, zero page errors"
+    },
+    "tally": {
+      "fixed": 30,
+      "open": 4,
+      "partial": 3
+    },
+    "liveBugCaughtAndFixed": "A RefreshControl wrapper component swallowed the children/style that Android and web inject, blanking every pull-to-refresh screen; Screen.tsx now passes a RefreshControl element",
+    "stillUnverified": [
+      "native iOS and Android rendering (web render only)",
+      "register back-stepping with Android hardware back and iOS swipe",
+      "keyboard: submit visible with keyboard open, both platforms",
+      "allocate-batch pageSheet presentation on iOS",
+      "tab bar and headers at 1.3x font scale",
+      "Android edge-to-edge insets",
+      "scroll performance on the longest list"
+    ]
+  }
+}

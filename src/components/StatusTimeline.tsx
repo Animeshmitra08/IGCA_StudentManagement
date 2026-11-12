@@ -1,16 +1,17 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Icon, Text } from 'react-native-paper';
+import { Icon } from 'react-native-paper';
+import { Notice, Txt } from './ui';
 import { radius, spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { formatDate } from '@/src/utils/format';
 import type { Student, StudentStatus } from '@/src/types';
 
-const FLOW: { status: StudentStatus; title: string; icon: string }[] = [
-  { status: 'PENDING_APPROVAL', title: 'Registration submitted', icon: 'file-send-outline' },
-  { status: 'APPROVED', title: 'Approved by admin', icon: 'check-decagram-outline' },
-  { status: 'ALLOCATED', title: 'Batch allocated', icon: 'calendar-check-outline' },
-  { status: 'ACTIVE', title: 'Enrolment active', icon: 'school-outline' },
+const FLOW: { status: StudentStatus; title: string }[] = [
+  { status: 'PENDING_APPROVAL', title: 'Registration submitted' },
+  { status: 'APPROVED', title: 'Approved by admin' },
+  { status: 'ALLOCATED', title: 'Batch allocated' },
+  { status: 'ACTIVE', title: 'Enrolment active' },
 ];
 
 const ORDER: Record<StudentStatus, number> = {
@@ -21,11 +22,23 @@ const ORDER: Record<StudentStatus, number> = {
   REJECTED: -1,
 };
 
+const DOT = 20;
+
 /** Vertical progress of the approval lifecycle for one student. */
 export function StatusTimeline({ student, batchCode }: { student: Student; batchCode?: string | null }) {
   const { colors } = useAppTheme();
   const current = ORDER[student.status];
-  const rejected = student.status === 'REJECTED';
+
+  if (student.status === 'REJECTED') {
+    return (
+      <Notice
+        tone="error"
+        icon="close-circle-outline"
+        title="Registration rejected"
+        message={`${student.rejectionReason ?? 'Contact the administration office for details.'}\nReviewed on ${formatDate(student.reviewedOn)}`}
+      />
+    );
+  }
 
   const captionFor = (status: StudentStatus) => {
     switch (status) {
@@ -42,70 +55,45 @@ export function StatusTimeline({ student, batchCode }: { student: Student; batch
     }
   };
 
-  if (rejected) {
-    return (
-      <View style={[styles.rejected, { backgroundColor: colors.errorContainer }]}>
-        <Icon source="close-circle-outline" size={22} color={colors.error} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <Text variant="titleSmall" style={{ color: colors.error, fontWeight: '700' }}>
-            Registration rejected
-          </Text>
-          <Text variant="bodySmall" style={{ color: colors.onErrorContainer }}>
-            {student.rejectionReason ?? 'Contact the administration office for details.'}
-          </Text>
-          <Text variant="bodySmall" style={{ color: colors.onErrorContainer, opacity: 0.7 }}>
-            Reviewed on {formatDate(student.reviewedOn)}
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
   return (
-    <View>
+    <View accessibilityRole="list">
       {FLOW.map((step, index) => {
-        const done = index <= current;
+        const done = index < current;
         const isCurrent = index === current;
+        const reached = done || isCurrent;
         const last = index === FLOW.length - 1;
 
         return (
-          <View key={step.status} style={styles.step}>
+          <View
+            key={step.status}
+            style={styles.step}
+            accessible
+            accessibilityLabel={`${step.title}, ${done ? 'done' : isCurrent ? 'current step' : 'not reached'}. ${captionFor(step.status)}`}
+          >
             <View style={styles.rail}>
               <View
                 style={[
                   styles.dot,
-                  {
-                    backgroundColor: done ? colors.primary : colors.neutralContainer,
-                    borderColor: isCurrent ? colors.primary : 'transparent',
-                  },
+                  reached
+                    ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                    : { backgroundColor: colors.card, borderColor: colors.outlineVariant },
                 ]}
               >
-                <Icon
-                  source={done ? (isCurrent ? step.icon : 'check') : step.icon}
-                  size={14}
-                  color={done ? colors.onPrimary : colors.muted}
-                />
+                {done && <Icon source="check" size={12} color={colors.onPrimary} />}
+                {isCurrent && <View style={[styles.core, { backgroundColor: colors.onPrimary }]} />}
               </View>
               {!last && (
-                <View
-                  style={[
-                    styles.line,
-                    { backgroundColor: index < current ? colors.primary : colors.border },
-                  ]}
-                />
+                <View style={[styles.line, { backgroundColor: done ? colors.primary : colors.border }]} />
               )}
             </View>
 
-            <View style={styles.stepBody}>
-              <Text
-                variant="bodyMedium"
-                style={{ fontWeight: isCurrent ? '700' : '600', color: done ? colors.onSurface : colors.muted }}
-              >
+            <View style={[styles.stepBody, last && { paddingBottom: 0 }]}>
+              <Txt v={isCurrent ? 'bodyStrong' : 'body'} muted={!reached}>
                 {step.title}
-              </Text>
-              <Text variant="bodySmall" style={{ color: colors.muted }}>
+              </Txt>
+              <Txt v="caption" muted>
                 {captionFor(step.status)}
-              </Text>
+              </Txt>
             </View>
           </View>
         );
@@ -116,21 +104,17 @@ export function StatusTimeline({ student, batchCode }: { student: Student; batch
 
 const styles = StyleSheet.create({
   step: { flexDirection: 'row', gap: spacing.md },
-  rail: { alignItems: 'center', width: 30 },
+  rail: { alignItems: 'center', width: DOT },
   dot: {
-    width: 28,
-    height: 28,
+    width: DOT,
+    height: DOT,
     borderRadius: radius.pill,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
+    marginTop: 1,
   },
-  line: { width: 2, flex: 1, minHeight: 22, marginVertical: 2 },
-  stepBody: { flex: 1, paddingBottom: spacing.lg, gap: 1 },
-  rejected: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderRadius: radius.md,
-  },
+  core: { width: 6, height: 6, borderRadius: radius.pill },
+  line: { width: 2, flex: 1, minHeight: spacing.lg },
+  stepBody: { flex: 1, paddingBottom: spacing.lg, gap: 2 },
 });
