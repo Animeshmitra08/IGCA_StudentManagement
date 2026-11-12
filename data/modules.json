@@ -1,0 +1,28 @@
+[
+  { "id": "MOD-RN-1", "courseId": "CRS-RN", "order": 1, "title": "React Native Basics", "description": "Environment setup, JSX, core components, styling and the Expo workflow." },
+  { "id": "MOD-RN-2", "courseId": "CRS-RN", "order": 2, "title": "Navigation", "description": "Stack, tab and drawer navigation with Expo Router and deep linking." },
+  { "id": "MOD-RN-3", "courseId": "CRS-RN", "order": 3, "title": "API Integration", "description": "Fetching data, Axios, error handling, caching and offline states." },
+  { "id": "MOD-RN-4", "courseId": "CRS-RN", "order": 4, "title": "Release & Deployment", "description": "EAS builds, app signing and publishing to Play Store and App Store." },
+
+  { "id": "MOD-FS-1", "courseId": "CRS-FS", "order": 1, "title": "Web Foundations", "description": "HTML, CSS layout systems and modern JavaScript essentials." },
+  { "id": "MOD-FS-2", "courseId": "CRS-FS", "order": 2, "title": "React Frontend", "description": "Components, hooks, routing and state management patterns." },
+  { "id": "MOD-FS-3", "courseId": "CRS-FS", "order": 3, "title": "Node & Express APIs", "description": "REST design, middleware, validation and authentication with JWT." },
+  { "id": "MOD-FS-4", "courseId": "CRS-FS", "order": 4, "title": "Databases & Deployment", "description": "MongoDB modelling, aggregation and deploying to the cloud." },
+
+  { "id": "MOD-PY-1", "courseId": "CRS-PY", "order": 1, "title": "Python Fundamentals", "description": "Syntax, data types, control flow and functions." },
+  { "id": "MOD-PY-2", "courseId": "CRS-PY", "order": 2, "title": "Object Oriented Python", "description": "Classes, inheritance, dunder methods and modules." },
+  { "id": "MOD-PY-3", "courseId": "CRS-PY", "order": 3, "title": "Automation & Scripting", "description": "File handling, requests, scheduling and working with APIs." },
+
+  { "id": "MOD-DA-1", "courseId": "CRS-DA", "order": 1, "title": "Data Foundations", "description": "Data types, collection methods and spreadsheet analysis." },
+  { "id": "MOD-DA-2", "courseId": "CRS-DA", "order": 2, "title": "SQL for Analytics", "description": "Joins, window functions and analytical query patterns." },
+  { "id": "MOD-DA-3", "courseId": "CRS-DA", "order": 3, "title": "Pandas & Visualisation", "description": "Cleaning, reshaping and charting datasets in Python." },
+  { "id": "MOD-DA-4", "courseId": "CRS-DA", "order": 4, "title": "Dashboards & Storytelling", "description": "Power BI dashboards and communicating insights to stakeholders." },
+
+  { "id": "MOD-UX-1", "courseId": "CRS-UX", "order": 1, "title": "Design Thinking", "description": "User research, personas, journey maps and problem framing." },
+  { "id": "MOD-UX-2", "courseId": "CRS-UX", "order": 2, "title": "Wireframing & Prototyping", "description": "Low to high fidelity flows and interactive prototypes in Figma." },
+  { "id": "MOD-UX-3", "courseId": "CRS-UX", "order": 3, "title": "Design Systems", "description": "Type scales, colour tokens, components and accessibility." },
+
+  { "id": "MOD-CLD-1", "courseId": "CRS-CLD", "order": 1, "title": "Linux & Containers", "description": "Shell essentials, Docker images, volumes and networking." },
+  { "id": "MOD-CLD-2", "courseId": "CRS-CLD", "order": 2, "title": "CI/CD Pipelines", "description": "GitHub Actions, build stages, artefacts and environments." },
+  { "id": "MOD-CLD-3", "courseId": "CRS-CLD", "order": 3, "title": "AWS & Infrastructure as Code", "description": "EC2, S3, IAM and provisioning with Terraform." }
+]

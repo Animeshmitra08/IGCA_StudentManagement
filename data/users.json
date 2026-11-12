@@ -1,0 +1,118 @@
+[
+  {
+    "id": "USR-A01",
+    "role": "ADMIN",
+    "name": "Abhay Kaushik",
+    "email": "admin@ams.dev",
+    "password": "admin123",
+    "phone": "9800000001",
+    "designation": "Academic Administrator",
+    "avatarColor": "#1D4ED8"
+  },
+  {
+    "id": "USR-T01",
+    "role": "TEACHER",
+    "name": "Ritu Sharma",
+    "email": "ritu@ams.dev",
+    "password": "teacher123",
+    "phone": "9800000011",
+    "designation": "Senior Mobile Engineer",
+    "courseIds": ["CRS-RN"],
+    "avatarColor": "#4F46E5"
+  },
+  {
+    "id": "USR-T02",
+    "role": "TEACHER",
+    "name": "Arjun Verma",
+    "email": "arjun@ams.dev",
+    "password": "teacher123",
+    "phone": "9800000012",
+    "designation": "Full Stack Mentor",
+    "courseIds": ["CRS-FS"],
+    "avatarColor": "#0891B2"
+  },
+  {
+    "id": "USR-T03",
+    "role": "TEACHER",
+    "name": "Neha Kapoor",
+    "email": "neha@ams.dev",
+    "password": "teacher123",
+    "phone": "9800000013",
+    "designation": "Python Trainer",
+    "courseIds": ["CRS-PY"],
+    "avatarColor": "#CA8A04"
+  },
+  {
+    "id": "USR-T04",
+    "role": "TEACHER",
+    "name": "Sanjay Iyer",
+    "email": "sanjay@ams.dev",
+    "password": "teacher123",
+    "phone": "9800000014",
+    "designation": "Data Analyst",
+    "courseIds": ["CRS-DA"],
+    "avatarColor": "#059669"
+  },
+  {
+    "id": "USR-T05",
+    "role": "TEACHER",
+    "name": "Priya Nair",
+    "email": "priya@ams.dev",
+    "password": "teacher123",
+    "phone": "9800000015",
+    "designation": "Product Designer",
+    "courseIds": ["CRS-UX"],
+    "avatarColor": "#DB2777"
+  },
+  {
+    "id": "USR-T06",
+    "role": "TEACHER",
+    "name": "Imran Qureshi",
+    "email": "imran@ams.dev",
+    "password": "teacher123",
+    "phone": "9800000016",
+    "designation": "DevOps Engineer",
+    "courseIds": ["CRS-CLD"],
+    "avatarColor": "#7C3AED"
+  },
+  {
+    "id": "USR-S01",
+    "role": "STUDENT",
+    "studentId": "STU-001",
+    "name": "Ananya Sharma",
+    "email": "ananya.sharma@example.com",
+    "password": "student123",
+    "phone": "9812345670",
+    "avatarColor": "#4F46E5"
+  },
+  {
+    "id": "USR-S02",
+    "role": "STUDENT",
+    "studentId": "STU-006",
+    "name": "Kabir Chatterjee",
+    "email": "kabir.chatterjee@example.com",
+    "password": "student123",
+    "phone": "9836501122",
+    "avatarColor": "#7C3AED"
+  },
+  {
+    "id": "USR-S03",
+    "role": "STUDENT",
+    "studentId": "STU-010",
+    "name": "Arjun Nair",
+    "email": "arjun.nair@example.com",
+    "password": "student123",
+    "phone": "9535667788",
+    "avatarColor": "#4F46E5"
+  },
+  {
+    "id": "USR-S04",
+    "role": "STUDENT",
+    "studentId": "STU-015",
+    "name": "Nikhil Verma",
+    "email": "nikhil.verma@example.com",
+    "password": "student123",
+    "phone": "9811223344",
+    "avatarColor": "#DC2626"
+  }
+]

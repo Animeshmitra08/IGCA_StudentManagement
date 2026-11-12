@@ -1,0 +1,255 @@
+[
+  {
+    "id": "STU-001", "registrationNo": "REG-2026-0001", "status": "ACTIVE",
+    "fullName": "Ananya Sharma", "dob": "2002-04-11", "gender": "Female", "bloodGroup": "B+",
+    "email": "ananya.sharma@example.com", "phone": "9812345670", "altPhone": "9812345671",
+    "address": "14 Rajdanga Main Road", "city": "Kolkata", "state": "West Bengal", "pincode": "700107",
+    "guardianName": "Rakesh Sharma", "guardianPhone": "9830012345",
+    "education": { "qualification": "B.Tech - Computer Science", "institution": "Techno India University", "board": "MAKAUT", "yearOfPassing": 2024, "percentage": 82.4 },
+    "courseId": "CRS-RN", "batchId": "BTH-RN-03",
+    "appliedOn": "2026-06-18", "reviewedOn": "2026-06-20", "reviewedBy": "Admin", "allocatedOn": "2026-06-21", "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-001", "name": "passport-photo.jpg", "type": "PHOTO", "size": "212 KB", "uploadedOn": "2026-06-18" },
+      { "id": "DOC-002", "name": "aadhaar-card.pdf", "type": "ID_PROOF", "size": "540 KB", "uploadedOn": "2026-06-18" },
+      { "id": "DOC-003", "name": "btech-marksheet.pdf", "type": "MARKSHEET", "size": "1.1 MB", "uploadedOn": "2026-06-18" }
+    ],
+    "completedContentIds": ["CNT-001", "CNT-002", "CNT-003", "CNT-004"],
+    "avatarColor": "#4F46E5"
+  },
+  {
+    "id": "STU-002", "registrationNo": "REG-2026-0002", "status": "ACTIVE",
+    "fullName": "Rohit Menon", "dob": "2001-11-02", "gender": "Male", "bloodGroup": "O+",
+    "email": "rohit.menon@example.com", "phone": "9822110045", "altPhone": "",
+    "address": "8/3 Park Street", "city": "Kolkata", "state": "West Bengal", "pincode": "700016",
+    "guardianName": "Suresh Menon", "guardianPhone": "9831188990",
+    "education": { "qualification": "BCA", "institution": "St. Xavier's College", "board": "Calcutta University", "yearOfPassing": 2023, "percentage": 76.0 },
+    "courseId": "CRS-FS", "batchId": "BTH-FS-01",
+    "appliedOn": "2026-07-02", "reviewedOn": "2026-07-04", "reviewedBy": "Admin", "allocatedOn": "2026-07-05", "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-004", "name": "photo.jpg", "type": "PHOTO", "size": "198 KB", "uploadedOn": "2026-07-02" },
+      { "id": "DOC-005", "name": "pan-card.pdf", "type": "ID_PROOF", "size": "410 KB", "uploadedOn": "2026-07-02" }
+    ],
+    "completedContentIds": ["CNT-011", "CNT-012"],
+    "avatarColor": "#0891B2"
+  },
+  {
+    "id": "STU-003", "registrationNo": "REG-2026-0003", "status": "ACTIVE",
+    "fullName": "Priyanka Das", "dob": "2003-01-25", "gender": "Female", "bloodGroup": "A+",
+    "email": "priyanka.das@example.com", "phone": "9903456712", "altPhone": "",
+    "address": "22 Salt Lake Sector V", "city": "Kolkata", "state": "West Bengal", "pincode": "700091",
+    "guardianName": "Amit Das", "guardianPhone": "9903456700",
+    "education": { "qualification": "B.Sc - Statistics", "institution": "Presidency University", "board": "Presidency", "yearOfPassing": 2025, "percentage": 88.9 },
+    "courseId": "CRS-DA", "batchId": "BTH-DA-01",
+    "appliedOn": "2026-08-01", "reviewedOn": "2026-08-03", "reviewedBy": "Admin", "allocatedOn": "2026-08-04", "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-006", "name": "photo.png", "type": "PHOTO", "size": "240 KB", "uploadedOn": "2026-08-01" },
+      { "id": "DOC-007", "name": "bsc-marksheet.pdf", "type": "MARKSHEET", "size": "980 KB", "uploadedOn": "2026-08-01" }
+    ],
+    "completedContentIds": ["CNT-023", "CNT-024", "CNT-025"],
+    "avatarColor": "#059669"
+  },
+  {
+    "id": "STU-004", "registrationNo": "REG-2026-0004", "status": "ACTIVE",
+    "fullName": "Imran Hossain", "dob": "2000-09-14", "gender": "Male", "bloodGroup": "AB+",
+    "email": "imran.hossain@example.com", "phone": "9088776655", "altPhone": "",
+    "address": "45 Beniapukur Lane", "city": "Kolkata", "state": "West Bengal", "pincode": "700014",
+    "guardianName": "Farid Hossain", "guardianPhone": "9088776600",
+    "education": { "qualification": "B.Com", "institution": "Goenka College", "board": "Calcutta University", "yearOfPassing": 2022, "percentage": 71.2 },
+    "courseId": "CRS-PY", "batchId": "BTH-PY-01",
+    "appliedOn": "2026-07-28", "reviewedOn": "2026-07-30", "reviewedBy": "Admin", "allocatedOn": "2026-07-31", "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-008", "name": "photo.jpg", "type": "PHOTO", "size": "180 KB", "uploadedOn": "2026-07-28" }
+    ],
+    "completedContentIds": ["CNT-018"],
+    "avatarColor": "#CA8A04"
+  },
+  {
+    "id": "STU-005", "registrationNo": "REG-2026-0005", "status": "ACTIVE",
+    "fullName": "Sneha Kulkarni", "dob": "2002-06-30", "gender": "Female", "bloodGroup": "O-",
+    "email": "sneha.kulkarni@example.com", "phone": "9765432100", "altPhone": "",
+    "address": "101 Kothrud", "city": "Pune", "state": "Maharashtra", "pincode": "411038",
+    "guardianName": "Vinod Kulkarni", "guardianPhone": "9765432111",
+    "education": { "qualification": "B.Des", "institution": "MIT Institute of Design", "board": "MIT ADT", "yearOfPassing": 2024, "percentage": 79.5 },
+    "courseId": "CRS-UX", "batchId": "BTH-UX-01",
+    "appliedOn": "2026-08-05", "reviewedOn": "2026-08-07", "reviewedBy": "Admin", "allocatedOn": "2026-08-08", "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-009", "name": "photo.jpg", "type": "PHOTO", "size": "205 KB", "uploadedOn": "2026-08-05" },
+      { "id": "DOC-010", "name": "portfolio.pdf", "type": "OTHER", "size": "6.4 MB", "uploadedOn": "2026-08-05" }
+    ],
+    "completedContentIds": ["CNT-029", "CNT-030"],
+    "avatarColor": "#DB2777"
+  },
+  {
+    "id": "STU-006", "registrationNo": "REG-2026-0006", "status": "ALLOCATED",
+    "fullName": "Kabir Chatterjee", "dob": "2003-03-19", "gender": "Male", "bloodGroup": "B+",
+    "email": "kabir.chatterjee@example.com", "phone": "9836501122", "altPhone": "",
+    "address": "7 Jodhpur Park", "city": "Kolkata", "state": "West Bengal", "pincode": "700068",
+    "guardianName": "Soumen Chatterjee", "guardianPhone": "9836501100",
+    "education": { "qualification": "BCA", "institution": "Heritage Institute", "board": "MAKAUT", "yearOfPassing": 2025, "percentage": 74.8 },
+    "courseId": "CRS-RN", "batchId": "BTH-RN-01",
+    "appliedOn": "2026-08-25", "reviewedOn": "2026-08-27", "reviewedBy": "Admin", "allocatedOn": "2026-08-28", "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-011", "name": "photo.jpg", "type": "PHOTO", "size": "220 KB", "uploadedOn": "2026-08-25" },
+      { "id": "DOC-012", "name": "aadhaar.pdf", "type": "ID_PROOF", "size": "512 KB", "uploadedOn": "2026-08-25" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#7C3AED"
+  },
+  {
+    "id": "STU-007", "registrationNo": "REG-2026-0007", "status": "ALLOCATED",
+    "fullName": "Meera Pillai", "dob": "2001-12-08", "gender": "Female", "bloodGroup": "A-",
+    "email": "meera.pillai@example.com", "phone": "9447788991", "altPhone": "",
+    "address": "62 MG Road", "city": "Kochi", "state": "Kerala", "pincode": "682016",
+    "guardianName": "Ramesh Pillai", "guardianPhone": "9447788900",
+    "education": { "qualification": "B.Tech - IT", "institution": "CUSAT", "board": "CUSAT", "yearOfPassing": 2023, "percentage": 80.1 },
+    "courseId": "CRS-FS", "batchId": "BTH-FS-02",
+    "appliedOn": "2026-08-29", "reviewedOn": "2026-08-31", "reviewedBy": "Admin", "allocatedOn": "2026-09-01", "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-013", "name": "photo.jpg", "type": "PHOTO", "size": "196 KB", "uploadedOn": "2026-08-29" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#0891B2"
+  },
+  {
+    "id": "STU-008", "registrationNo": "REG-2026-0008", "status": "APPROVED",
+    "fullName": "Devansh Joshi", "dob": "2002-08-21", "gender": "Male", "bloodGroup": "O+",
+    "email": "devansh.joshi@example.com", "phone": "9712345566", "altPhone": "",
+    "address": "9 Satellite Road", "city": "Ahmedabad", "state": "Gujarat", "pincode": "380015",
+    "guardianName": "Nilesh Joshi", "guardianPhone": "9712345500",
+    "education": { "qualification": "B.Sc - Computer Science", "institution": "Gujarat University", "board": "GU", "yearOfPassing": 2024, "percentage": 77.3 },
+    "courseId": "CRS-RN", "batchId": null,
+    "appliedOn": "2026-09-02", "reviewedOn": "2026-09-05", "reviewedBy": "Admin", "allocatedOn": null, "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-014", "name": "photo.jpg", "type": "PHOTO", "size": "230 KB", "uploadedOn": "2026-09-02" },
+      { "id": "DOC-015", "name": "marksheet.pdf", "type": "MARKSHEET", "size": "1.3 MB", "uploadedOn": "2026-09-02" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#4F46E5"
+  },
+  {
+    "id": "STU-009", "registrationNo": "REG-2026-0009", "status": "APPROVED",
+    "fullName": "Tanvi Reddy", "dob": "2003-05-05", "gender": "Female", "bloodGroup": "B-",
+    "email": "tanvi.reddy@example.com", "phone": "9666112233", "altPhone": "",
+    "address": "18 Banjara Hills", "city": "Hyderabad", "state": "Telangana", "pincode": "500034",
+    "guardianName": "Srinivas Reddy", "guardianPhone": "9666112200",
+    "education": { "qualification": "B.Tech - ECE", "institution": "JNTU Hyderabad", "board": "JNTUH", "yearOfPassing": 2025, "percentage": 84.6 },
+    "courseId": "CRS-DA", "batchId": null,
+    "appliedOn": "2026-09-03", "reviewedOn": "2026-09-06", "reviewedBy": "Admin", "allocatedOn": null, "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-016", "name": "photo.jpg", "type": "PHOTO", "size": "215 KB", "uploadedOn": "2026-09-03" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#059669"
+  },
+  {
+    "id": "STU-010", "registrationNo": "REG-2026-0010", "status": "PENDING_APPROVAL",
+    "fullName": "Arjun Nair", "dob": "2002-02-17", "gender": "Male", "bloodGroup": "A+",
+    "email": "arjun.nair@example.com", "phone": "9535667788", "altPhone": "",
+    "address": "31 Indiranagar", "city": "Bengaluru", "state": "Karnataka", "pincode": "560038",
+    "guardianName": "Mohan Nair", "guardianPhone": "9535667700",
+    "education": { "qualification": "B.E - Computer Science", "institution": "RV College of Engineering", "board": "VTU", "yearOfPassing": 2024, "percentage": 86.2 },
+    "courseId": "CRS-RN", "batchId": null,
+    "appliedOn": "2026-09-08", "reviewedOn": null, "reviewedBy": null, "allocatedOn": null, "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-017", "name": "photo.jpg", "type": "PHOTO", "size": "208 KB", "uploadedOn": "2026-09-08" },
+      { "id": "DOC-018", "name": "aadhaar.pdf", "type": "ID_PROOF", "size": "498 KB", "uploadedOn": "2026-09-08" },
+      { "id": "DOC-019", "name": "degree.pdf", "type": "MARKSHEET", "size": "1.5 MB", "uploadedOn": "2026-09-08" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#4F46E5"
+  },
+  {
+    "id": "STU-011", "registrationNo": "REG-2026-0011", "status": "PENDING_APPROVAL",
+    "fullName": "Ishita Bose", "dob": "2004-07-09", "gender": "Female", "bloodGroup": "O+",
+    "email": "ishita.bose@example.com", "phone": "9163445566", "altPhone": "",
+    "address": "5 Behala Chowrasta", "city": "Kolkata", "state": "West Bengal", "pincode": "700034",
+    "guardianName": "Dipankar Bose", "guardianPhone": "9163445500",
+    "education": { "qualification": "Higher Secondary", "institution": "South Point High School", "board": "CBSE", "yearOfPassing": 2026, "percentage": 91.0 },
+    "courseId": "CRS-PY", "batchId": null,
+    "appliedOn": "2026-09-09", "reviewedOn": null, "reviewedBy": null, "allocatedOn": null, "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-020", "name": "photo.jpg", "type": "PHOTO", "size": "188 KB", "uploadedOn": "2026-09-09" },
+      { "id": "DOC-021", "name": "hs-marksheet.pdf", "type": "MARKSHEET", "size": "900 KB", "uploadedOn": "2026-09-09" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#CA8A04"
+  },
+  {
+    "id": "STU-012", "registrationNo": "REG-2026-0012", "status": "PENDING_APPROVAL",
+    "fullName": "Vikram Singh", "dob": "1999-10-23", "gender": "Male", "bloodGroup": "AB-",
+    "email": "vikram.singh@example.com", "phone": "9001223344", "altPhone": "",
+    "address": "77 Civil Lines", "city": "Jaipur", "state": "Rajasthan", "pincode": "302006",
+    "guardianName": "Devendra Singh", "guardianPhone": "9001223300",
+    "education": { "qualification": "MCA", "institution": "University of Rajasthan", "board": "UOR", "yearOfPassing": 2023, "percentage": 73.4 },
+    "courseId": "CRS-CLD", "batchId": null,
+    "appliedOn": "2026-09-10", "reviewedOn": null, "reviewedBy": null, "allocatedOn": null, "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-022", "name": "photo.jpg", "type": "PHOTO", "size": "225 KB", "uploadedOn": "2026-09-10" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#7C3AED"
+  },
+  {
+    "id": "STU-013", "registrationNo": "REG-2026-0013", "status": "PENDING_APPROVAL",
+    "fullName": "Fatima Ansari", "dob": "2003-12-01", "gender": "Female", "bloodGroup": "B+",
+    "email": "fatima.ansari@example.com", "phone": "9320998877", "altPhone": "",
+    "address": "12 Andheri West", "city": "Mumbai", "state": "Maharashtra", "pincode": "400058",
+    "guardianName": "Yusuf Ansari", "guardianPhone": "9320998800",
+    "education": { "qualification": "BMS", "institution": "Mithibai College", "board": "Mumbai University", "yearOfPassing": 2025, "percentage": 78.8 },
+    "courseId": "CRS-UX", "batchId": null,
+    "appliedOn": "2026-09-11", "reviewedOn": null, "reviewedBy": null, "allocatedOn": null, "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-023", "name": "photo.jpg", "type": "PHOTO", "size": "192 KB", "uploadedOn": "2026-09-11" },
+      { "id": "DOC-024", "name": "id-card.pdf", "type": "ID_PROOF", "size": "460 KB", "uploadedOn": "2026-09-11" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#DB2777"
+  },
+  {
+    "id": "STU-014", "registrationNo": "REG-2026-0014", "status": "PENDING_APPROVAL",
+    "fullName": "Harsh Patel", "dob": "2002-01-30", "gender": "Male", "bloodGroup": "O+",
+    "email": "harsh.patel@example.com", "phone": "9879001122", "altPhone": "",
+    "address": "3 Adajan", "city": "Surat", "state": "Gujarat", "pincode": "395009",
+    "guardianName": "Kiran Patel", "guardianPhone": "9879001100",
+    "education": { "qualification": "Diploma - IT", "institution": "Government Polytechnic", "board": "GTU", "yearOfPassing": 2022, "percentage": 68.5 },
+    "courseId": "CRS-FS", "batchId": null,
+    "appliedOn": "2026-09-11", "reviewedOn": null, "reviewedBy": null, "allocatedOn": null, "rejectionReason": null,
+    "documents": [
+      { "id": "DOC-025", "name": "photo.jpg", "type": "PHOTO", "size": "210 KB", "uploadedOn": "2026-09-11" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#0891B2"
+  },
+  {
+    "id": "STU-015", "registrationNo": "REG-2026-0015", "status": "REJECTED",
+    "fullName": "Nikhil Verma", "dob": "2004-04-04", "gender": "Male", "bloodGroup": "A+",
+    "email": "nikhil.verma@example.com", "phone": "9811223344", "altPhone": "",
+    "address": "56 Lajpat Nagar", "city": "New Delhi", "state": "Delhi", "pincode": "110024",
+    "guardianName": "Ashok Verma", "guardianPhone": "9811223300",
+    "education": { "qualification": "Higher Secondary", "institution": "DPS RK Puram", "board": "CBSE", "yearOfPassing": 2026, "percentage": 55.0 },
+    "courseId": "CRS-CLD", "batchId": null,
+    "appliedOn": "2026-08-20", "reviewedOn": "2026-08-22", "reviewedBy": "Admin", "allocatedOn": null,
+    "rejectionReason": "Does not meet the minimum eligibility for an advanced course. Please apply for Python or Full Stack Development.",
+    "documents": [
+      { "id": "DOC-026", "name": "photo.jpg", "type": "PHOTO", "size": "201 KB", "uploadedOn": "2026-08-20" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#DC2626"
+  },
+  {
+    "id": "STU-016", "registrationNo": "REG-2026-0016", "status": "REJECTED",
+    "fullName": "Pooja Gupta", "dob": "2001-06-16", "gender": "Female", "bloodGroup": "B+",
+    "email": "pooja.gupta@example.com", "phone": "9455667788", "altPhone": "",
+    "address": "41 Gomti Nagar", "city": "Lucknow", "state": "Uttar Pradesh", "pincode": "226010",
+    "guardianName": "Rajeev Gupta", "guardianPhone": "9455667700",
+    "education": { "qualification": "BA - English", "institution": "Lucknow University", "board": "LU", "yearOfPassing": 2023, "percentage": 64.2 },
+    "courseId": "CRS-DA", "batchId": null,
+    "appliedOn": "2026-08-12", "reviewedOn": "2026-08-15", "reviewedBy": "Admin", "allocatedOn": null,
+    "rejectionReason": "Submitted documents were unreadable. Re-apply with clear scanned copies.",
+    "documents": [
+      { "id": "DOC-027", "name": "photo.jpg", "type": "PHOTO", "size": "150 KB", "uploadedOn": "2026-08-12" }
+    ],
+    "completedContentIds": [],
+    "avatarColor": "#DC2626"
+  }
+]

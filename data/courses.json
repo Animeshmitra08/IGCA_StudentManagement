@@ -1,0 +1,80 @@
+[
+  {
+    "id": "CRS-RN",
+    "code": "RN",
+    "title": "React Native Development",
+    "tagline": "Build cross-platform mobile apps with React Native & Expo",
+    "description": "Learn to build production-ready iOS and Android applications using React Native, Expo Router, and modern state management. Covers navigation, native modules, API integration and app store deployment.",
+    "durationWeeks": 12,
+    "fee": 24000,
+    "level": "Intermediate",
+    "icon": "cellphone-cog",
+    "color": "#4F46E5",
+    "active": true
+  },
+  {
+    "id": "CRS-FS",
+    "code": "FS",
+    "title": "Full Stack Development",
+    "tagline": "MERN stack from database to deployment",
+    "description": "End-to-end web development with MongoDB, Express, React and Node.js. Includes REST API design, authentication, testing and cloud deployment.",
+    "durationWeeks": 16,
+    "fee": 32000,
+    "level": "Beginner",
+    "icon": "layers-triple",
+    "color": "#0891B2",
+    "active": true
+  },
+  {
+    "id": "CRS-PY",
+    "code": "PY",
+    "title": "Python",
+    "tagline": "Programming fundamentals to automation",
+    "description": "Core Python programming, object oriented design, file handling, and practical automation scripting for real world tasks.",
+    "durationWeeks": 8,
+    "fee": 14000,
+    "level": "Beginner",
+    "icon": "language-python",
+    "color": "#CA8A04",
+    "active": true
+  },
+  {
+    "id": "CRS-DA",
+    "code": "DA",
+    "title": "Data Analytics",
+    "tagline": "Turn raw data into business decisions",
+    "description": "Data wrangling with Pandas, SQL querying, statistical analysis and dashboarding with Power BI. Capstone project on a real dataset.",
+    "durationWeeks": 14,
+    "fee": 28000,
+    "level": "Intermediate",
+    "icon": "chart-box",
+    "color": "#059669",
+    "active": true
+  },
+  {
+    "id": "CRS-UX",
+    "code": "UX",
+    "title": "UI/UX Design",
+    "tagline": "Design interfaces people love to use",
+    "description": "Design thinking, wireframing, prototyping in Figma, design systems and usability testing. Portfolio-focused curriculum.",
+    "durationWeeks": 10,
+    "fee": 20000,
+    "level": "Beginner",
+    "icon": "palette-swatch",
+    "color": "#DB2777",
+    "active": true
+  },
+  {
+    "id": "CRS-CLD",
+    "code": "CLD",
+    "title": "Cloud & DevOps",
+    "tagline": "Ship and scale with AWS, Docker and CI/CD",
+    "description": "Containerisation, orchestration, infrastructure as code and continuous delivery pipelines on AWS.",
+    "durationWeeks": 12,
+    "fee": 30000,
+    "level": "Advanced",
+    "icon": "cloud-cog",
+    "color": "#7C3AED",
+    "active": true
+  }
+]
