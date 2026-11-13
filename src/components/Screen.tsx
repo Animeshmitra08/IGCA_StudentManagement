@@ -10,16 +10,56 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/src/theme/useAppTheme';
-import { elevation, radius, spacing } from '@/src/theme/theme';
+import { elevation, radius, spacing, tabBar } from '@/src/theme/theme';
+import { Bento, bentoSteps } from './Bento';
+import { Enter, EnterOrderContext, EntranceProvider } from './motion';
 import { Separator } from './ui';
 
 /**
- * Bottom padding for a scrollable. Tab screens sit above the tab bar, which already
- * owns the bottom inset; pushed screens have to clear it themselves.
+ * Bottom padding for a scrollable: the bottom inset, plus the floating tab bar on tab
+ * screens (content scrolls underneath it), or nothing extra when an action bar below
+ * the scroll view already clears the inset (`docked`).
  */
-export function useBottomPadding(tabbed?: boolean) {
+export function useBottomPadding(mode?: 'tabbed' | 'docked') {
   const insets = useSafeAreaInsets();
-  return spacing.xl + (tabbed ? 0 : insets.bottom);
+  if (mode === 'docked') return spacing.xl;
+  if (mode === 'tabbed') return spacing.xl + insets.bottom + tabBar.gap + tabBar.height;
+  return spacing.xl + insets.bottom;
+}
+
+/** Top-level children with fragments opened up, so each visible block is one entry. */
+function blocks(children: React.ReactNode, prefix = ''): { key: string; node: React.ReactNode }[] {
+  return React.Children.toArray(children).flatMap((child, index) => {
+    const key = `${prefix}${React.isValidElement(child) && child.key != null ? child.key : index}`;
+    if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.type === React.Fragment) {
+      return blocks(child.props.children, `${key}/`);
+    }
+    return [{ key, node: child }];
+  });
+}
+
+/**
+ * Wraps each block of a screen in its entrance step. A Bento is not wrapped: it gets
+ * its starting step and its tiles enter one by one.
+ */
+function staggered(children: React.ReactNode) {
+  let order = 0;
+  return blocks(children).map(({ key, node }) => {
+    if (React.isValidElement<{ children?: React.ReactNode }>(node) && node.type === Bento) {
+      const start = order;
+      order += bentoSteps(node.props.children);
+      return (
+        <EnterOrderContext.Provider key={key} value={start}>
+          {node}
+        </EnterOrderContext.Provider>
+      );
+    }
+    return (
+      <Enter key={key} order={order++}>
+        {node}
+      </Enter>
+    );
+  });
 }
 
 /**
@@ -47,21 +87,24 @@ interface Props {
 
 /**
  * Page shell for fixed, short content: themed background, 16pt padding, pull to
- * refresh, safe bottom inset. Unbounded data belongs in GroupedList, not here.
+ * refresh, safe bottom inset, and the staggered entrance of its blocks each time the
+ * screen is opened. Unbounded data belongs in GroupedList, not here.
  */
 export function Screen({ children, refreshing = false, onRefresh, tabbed, noBottomInset, style }: Props) {
   const { colors } = useAppTheme();
-  const paddingBottom = useBottomPadding(tabbed || noBottomInset);
+  const paddingBottom = useBottomPadding(noBottomInset ? 'docked' : tabbed ? 'tabbed' : undefined);
 
   return (
-    <ScrollView
-      style={[styles.base, { backgroundColor: colors.screen }]}
-      contentContainerStyle={[styles.content, { paddingBottom }, style]}
-      keyboardShouldPersistTaps="handled"
-      refreshControl={refresher(colors.primary, refreshing, onRefresh)}
-    >
-      {children}
-    </ScrollView>
+    <EntranceProvider>
+      <ScrollView
+        style={[styles.base, { backgroundColor: colors.screen }]}
+        contentContainerStyle={[styles.content, { paddingBottom }, style]}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={refresher(colors.primary, refreshing, onRefresh)}
+      >
+        {staggered(children)}
+      </ScrollView>
+    </EntranceProvider>
   );
 }
 
@@ -93,10 +136,11 @@ export function GroupedList<T>({
   separatorInset?: boolean | number;
 }) {
   const { colors } = useAppTheme();
-  const paddingBottom = useBottomPadding(tabbed);
+  const paddingBottom = useBottomPadding(tabbed ? 'tabbed' : undefined);
   const last = data.length - 1;
 
   return (
+    <EntranceProvider>
     <FlatList
       style={[styles.base, { backgroundColor: colors.screen }]}
       contentContainerStyle={[styles.listContent, { paddingBottom }]}
@@ -108,19 +152,23 @@ export function GroupedList<T>({
       ListEmptyComponent={empty}
       refreshControl={refresher(colors.primary, refreshing, onRefresh)}
       renderItem={({ item, index }) => (
-        <View
-          style={[
-            styles.cell,
-            { backgroundColor: colors.card, borderColor: colors.border },
-            index === 0 && styles.cellFirst,
-            index === last && styles.cellLast,
-          ]}
-        >
-          {index > 0 && <Separator inset={separatorInset} />}
-          {renderItem(item)}
-        </View>
+        // Rows on the first screenful cascade in; rows scrolled to later are just there.
+        <Enter order={index}>
+          <View
+            style={[
+              styles.cell,
+              { backgroundColor: colors.card, borderColor: colors.border },
+              index === 0 && styles.cellFirst,
+              index === last && styles.cellLast,
+            ]}
+          >
+            {index > 0 && <Separator inset={separatorInset} />}
+            {renderItem(item)}
+          </View>
+        </Enter>
       )}
     />
+    </EntranceProvider>
   );
 }
 
@@ -157,13 +205,13 @@ const styles = StyleSheet.create({
   },
   cellFirst: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopLeftRadius: radius.md,
-    borderTopRightRadius: radius.md,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
   },
   cellLast: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomLeftRadius: radius.md,
-    borderBottomRightRadius: radius.md,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
   },
   actionBar: {
     flexDirection: 'row',

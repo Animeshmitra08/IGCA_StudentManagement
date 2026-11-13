@@ -11,7 +11,7 @@ export function navigationTheme(theme: AppTheme): Theme {
       ...base.colors,
       primary: c.primary,
       background: c.screen,
-      // Headers and the tab bar sit flush on the screen background, separated by a hairline.
+      // Headers sit flush on the screen background.
       card: c.screen,
       text: c.onSurface,
       border: c.border,
@@ -28,7 +28,10 @@ export const detailScreenOptions = {
   headerTitleStyle: { fontSize: 17, fontWeight: '600' },
 } as const;
 
-/** Shared options for tab navigators: native header with a left-aligned title, native tab bar. */
+/**
+ * Shared options for tab navigators: native header with a left-aligned title. The tab
+ * bar itself is the floating PillTabBar, passed as `tabBar` in each tabs layout.
+ */
 export function tabScreenOptions(colors: AppTheme['colors']) {
   return {
     headerShown: true,
@@ -36,10 +39,6 @@ export function tabScreenOptions(colors: AppTheme['colors']) {
     headerTitleAlign: 'left',
     headerTitleStyle: { fontSize: 22, fontWeight: '700' },
     headerRightContainerStyle: { paddingRight: spacing.lg },
-    tabBarActiveTintColor: colors.primary,
-    tabBarInactiveTintColor: colors.muted,
-    // Size stays on the platform default: the bar's height is computed for it, and a
-    // larger size clips the label.
-    tabBarLabelStyle: { fontWeight: '500' },
+    headerStyle: { backgroundColor: colors.screen },
   } as const;
 }

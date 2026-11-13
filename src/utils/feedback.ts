@@ -28,10 +28,14 @@ export function confirmDestructive({
 }
 
 /**
- * Haptics vocabulary: only for the outcome of an async action, never for plain taps
- * or navigation.
+ * Haptics vocabulary: `success` / `failure` for the outcome of an async action, and
+ * `select` for switching tabs. Plain taps stay silent.
  */
 export const haptic = {
+  select: () => {
+    if (Platform.OS === 'web') return;
+    Haptics.selectionAsync().catch(() => {});
+  },
   success: () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
   },

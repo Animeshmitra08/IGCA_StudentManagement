@@ -1,5 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
+import { pillTabBar } from '@/src/components/PillTabBar';
 import { tabIcon } from '@/src/components/TabIcon';
 import { tabScreenOptions } from '@/src/theme/navigation';
 import { useAppTheme } from '@/src/theme/useAppTheme';
@@ -8,7 +9,7 @@ export default function StudentTabs() {
   const { colors } = useAppTheme();
 
   return (
-    <Tabs screenOptions={tabScreenOptions(colors)}>
+    <Tabs tabBar={pillTabBar} screenOptions={tabScreenOptions(colors)}>
       <Tabs.Screen
         name="index"
         options={{ title: 'Home', tabBarIcon: tabIcon('home-variant-outline', 'home-variant') }}

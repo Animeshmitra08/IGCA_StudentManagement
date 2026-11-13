@@ -21,6 +21,12 @@ import { initials } from '@/src/utils/format';
 /* ------------------------------------------------------------------- Txt */
 
 /**
+ * Text colours for content sitting on a filled surface (a solid bento tile). Txt picks
+ * them up by default, so the same content works on any tile tone.
+ */
+export const InkContext = React.createContext<{ fg: string; muted: string } | null>(null);
+
+/**
  * Text on the type scale. `chrome` bounds Dynamic Type for text inside fixed-size
  * controls (chips, bars); body text scales freely.
  */
@@ -33,11 +39,13 @@ export function Txt({
   ...rest
 }: TextProps & { v?: TypeVariant; muted?: boolean; color?: string; chrome?: boolean }) {
   const { colors } = useAppTheme();
+  const ink = React.useContext(InkContext);
+  const fallback = muted ? (ink?.muted ?? colors.muted) : (ink?.fg ?? colors.onSurface);
   return (
     <Text
       {...rest}
       maxFontSizeMultiplier={chrome ? CHROME_FONT_SCALE : rest.maxFontSizeMultiplier}
-      style={[type[v], { color: color ?? (muted ? colors.muted : colors.onSurface) }, style]}
+      style={[type[v], { color: color ?? fallback }, style]}
     />
   );
 }
@@ -73,8 +81,8 @@ export function Touchable({
 /* ----------------------------------------------------------------- Group */
 
 /**
- * Grouped-list section: one flat surface with hairlines between its children.
- * This is the default way to group content; there are no shadowed cards.
+ * Grouped-list section: one flat surface with hairlines between its children, with the
+ * same corner radius as a bento tile so lists and tiles read as one system.
  */
 export function Group({
   children,
@@ -568,7 +576,7 @@ export function SkeletonDetail() {
 
 const styles = StyleSheet.create({
   group: {
-    borderRadius: radius.md,
+    borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
   },
@@ -621,7 +629,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
   },
   noticeBody: { flex: 1, gap: 2 },
   chipScroll: { flexGrow: 0 },
@@ -638,7 +646,7 @@ const styles = StyleSheet.create({
   },
   chipCount: { opacity: 0.7 },
   search: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     height: 44,
   },

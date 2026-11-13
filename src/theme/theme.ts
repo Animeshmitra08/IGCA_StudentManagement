@@ -17,13 +17,24 @@ export const spacing = {
   xxl: 32,
 } as const;
 
-/** One radius scale, applied by role: sm = inputs, md = groups/buttons, lg = dialogs. */
+/**
+ * One radius scale, applied by role: sm = inputs, md = buttons, lg = dialogs, notices
+ * and the search field, xl = bento tiles and grouped lists.
+ */
 export const radius = {
   sm: 6,
   md: 10,
   lg: 14,
-  /** Status chips, filter chips and avatars only. */
+  xl: 22,
+  /** Chips, avatars, and the tab bar with its buttons. */
   pill: 999,
+} as const;
+
+/** Floating pill tab bar metrics. Tab screens pad their scroll content to clear it. */
+export const tabBar = {
+  height: 64,
+  /** Gap between the bar and the bottom inset, and between the bar and the screen edges. */
+  gap: spacing.md,
 } as const;
 
 /**
@@ -47,11 +58,21 @@ export type TypeVariant = keyof typeof type;
 export const CHROME_FONT_SCALE = 1.3;
 
 /**
- * Content is flat (hairlines, no shadows). `raised` is the only elevation level and is
- * reserved for bars that sit above scrolling content.
+ * Content is flat (hairlines and tinted tiles, no shadows). `raised` is for bars docked
+ * above scrolling content, `floating` for the pill tab bar that hovers over it.
  */
-export const elevation: Record<'flat' | 'raised', ViewStyle> = {
+export const elevation: Record<'flat' | 'raised' | 'floating', ViewStyle> = {
   flat: {},
+  floating: Platform.select<ViewStyle>({
+    ios: {
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.14,
+      shadowRadius: 20,
+    },
+    android: { elevation: 10 },
+    default: { boxShadow: '0 8px 28px rgba(0, 0, 0, 0.16)' },
+  }) as ViewStyle,
   raised: Platform.select<ViewStyle>({
     ios: {
       shadowColor: '#000000',
