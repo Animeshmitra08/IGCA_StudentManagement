@@ -120,7 +120,8 @@ export function EntranceProvider({ children }: { children: React.ReactNode }) {
 /**
  * One block of a screen's entrance: fades in and rises into place, `order` steps after
  * the first block. `pop` adds a slight scale-up, used by bento tiles. Outside an
- * EntranceProvider it renders its children as they are.
+ * EntranceProvider it renders its children as they are, and so does an Enter nested in
+ * another one: the outer block already carries the motion.
  */
 export function Enter({
   order,
@@ -147,7 +148,11 @@ export function Enter({
     };
   });
 
-  return <Animated.View style={[style, animated]}>{children}</Animated.View>;
+  return (
+    <Animated.View style={[style, animated]}>
+      <EntranceContext.Provider value={null}>{children}</EntranceContext.Provider>
+    </Animated.View>
+  );
 }
 
 /* ------------------------------------------------------------------ Fill */

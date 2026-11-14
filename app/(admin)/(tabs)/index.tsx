@@ -3,24 +3,16 @@ import { StyleSheet, View } from 'react-native';
 import { Icon } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
+import { Bento, BentoCol, BentoRow, CountUp, StatTile, Tile } from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
 import { Screen } from '@/src/components/Screen';
 import { StudentRow } from '@/src/components/StudentRow';
-import {
-  AVATAR_INSET,
-  EmptyState,
-  Group,
-  Notice,
-  Row,
-  SectionHeader,
-  Txt,
-} from '@/src/components/ui';
+import { AVATAR_INSET, EmptyState, Group, SectionHeader, Txt } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
-import { spacing, STATUS_META, statusColors } from '@/src/theme/theme';
+import { spacing, STATUS_META } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import type { StudentStatus } from '@/src/types';
 
-const BUCKETS: StudentStatus[] = ['PENDING_APPROVAL', 'APPROVED', 'ALLOCATED', 'ACTIVE', 'REJECTED'];
 const PREVIEW = 5;
 
 export default function AdminDashboard() {
@@ -33,29 +25,69 @@ export default function AdminDashboard() {
   const pending = students
     .filter((s) => s.status === 'PENDING_APPROVAL')
     .sort((a, b) => b.appliedOn.localeCompare(a.appliedOn));
-  const awaitingBatch = students.filter((s) => s.status === 'APPROVED').length;
   const countOf = (status: StudentStatus) => students.filter((s) => s.status === status).length;
+  const waiting = pending.length === 1 ? 'registration waiting for review' : 'registrations waiting for review';
 
   const openStudents = (filter: StudentStatus | 'ALL') =>
     router.push({ pathname: '/(admin)/(tabs)/students', params: { filter } });
 
   return (
     <Screen tabbed refreshing={refreshing} onRefresh={refresh}>
-      <View style={styles.lead} accessible accessibilityLabel={`${pending.length} registrations waiting for review`}>
-        <Txt v="display">{pending.length}</Txt>
-        <Txt muted>{pending.length === 1 ? 'registration waiting for review' : 'registrations waiting for review'}</Txt>
-      </View>
-
-      {awaitingBatch > 0 && (
-        <Notice
-          tone="info"
-          icon="calendar-alert"
-          title={`${awaitingBatch} approved ${awaitingBatch === 1 ? 'student needs' : 'students need'} a batch`}
-          message="Allocate a batch so they can start the course."
-          action={{ label: 'View', onPress: () => openStudents('APPROVED') }}
-          style={styles.notice}
-        />
-      )}
+      <Bento>
+        <BentoRow>
+          {/* The one thing an admin opens the app for: what needs a decision. */}
+          <Tile
+            span={3}
+            tone="solid"
+            onPress={() => openStudents('PENDING_APPROVAL')}
+            pushes
+            accessibilityLabel={`${pending.length} ${waiting}`}
+            style={styles.hero}
+          >
+            <Icon source={STATUS_META.PENDING_APPROVAL.icon} size={26} color={colors.onPrimary} />
+            <View>
+              <CountUp value={pending.length} v="display" />
+              <Txt>{waiting}</Txt>
+            </View>
+          </Tile>
+          <BentoCol span={2}>
+            <StatTile
+              tone="info"
+              icon="calendar-alert"
+              value={countOf('APPROVED')}
+              label="Approved, need a batch"
+              onPress={() => openStudents('APPROVED')}
+            />
+            <StatTile
+              icon="account-group-outline"
+              value={students.length}
+              label="All students"
+              onPress={() => openStudents('ALL')}
+            />
+          </BentoCol>
+        </BentoRow>
+        <BentoRow>
+          <StatTile
+            icon={STATUS_META.ALLOCATED.icon}
+            value={countOf('ALLOCATED')}
+            label="Allocated"
+            onPress={() => openStudents('ALLOCATED')}
+          />
+          <StatTile
+            tone="primary"
+            icon={STATUS_META.ACTIVE.icon}
+            value={countOf('ACTIVE')}
+            label="Active"
+            onPress={() => openStudents('ACTIVE')}
+          />
+          <StatTile
+            icon={STATUS_META.REJECTED.icon}
+            value={countOf('REJECTED')}
+            label="Rejected"
+            onPress={() => openStudents('REJECTED')}
+          />
+        </BentoRow>
+      </Bento>
 
       <SectionHeader
         title="Waiting for review"
@@ -83,46 +115,10 @@ export default function AdminDashboard() {
           ))}
         </Group>
       )}
-
-      <SectionHeader title="All registrations" />
-      <Group>
-        {BUCKETS.map((status) => {
-          const meta = STATUS_META[status];
-          const count = countOf(status);
-          return (
-            <Row
-              key={status}
-              leading={<Icon source={meta.icon} size={22} color={statusColors(colors, status).fg} />}
-              title={meta.label}
-              trailing={
-                <Txt v="bodyStrong" muted>
-                  {count}
-                </Txt>
-              }
-              onPress={() => openStudents(status)}
-              pushes
-              accessibilityLabel={`${meta.label}, ${count}`}
-            />
-          );
-        })}
-        <Row
-          leading={<Icon source="account-group-outline" size={22} color={colors.muted} />}
-          title="All students"
-          trailing={
-            <Txt v="bodyStrong" muted>
-              {students.length}
-            </Txt>
-          }
-          onPress={() => openStudents('ALL')}
-          pushes
-          accessibilityLabel={`All students, ${students.length}`}
-        />
-      </Group>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  lead: { gap: spacing.xs, paddingHorizontal: spacing.xs, paddingTop: spacing.sm },
-  notice: { marginTop: spacing.lg },
+  hero: { justifyContent: 'space-between', gap: spacing.xl },
 });

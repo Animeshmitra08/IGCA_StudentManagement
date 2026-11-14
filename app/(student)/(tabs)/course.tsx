@@ -1,16 +1,25 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Icon } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
+import { Bento, BentoRow, RingHero, Tile } from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
+import { ProgressRing } from '@/src/components/ProgressRing';
 import { Screen } from '@/src/components/Screen';
-import { EmptyState, Group, Lead, Progress, Row, SectionHeader, Txt } from '@/src/components/ui';
+import { EmptyState, Group, SectionHeader, Txt } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
 import { useCurrentStudent } from '@/src/hooks/useCurrentStudent';
 import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { percent } from '@/src/utils/format';
+import type { CourseModule } from '@/src/types';
+
+/** Modules two to a row; an odd one out takes the full width. */
+function pairs(modules: CourseModule[]) {
+  const rows: CourseModule[][] = [];
+  for (let i = 0; i < modules.length; i += 2) rows.push(modules.slice(i, i + 2));
+  return rows;
+}
 
 export default function StudentCourse() {
   const { colors } = useAppTheme();
@@ -51,14 +60,15 @@ export default function StudentCourse() {
 
   return (
     <Screen tabbed refreshing={refreshing} onRefresh={refresh}>
-      <Lead title={course.title} body={course.tagline}>
-        <View style={styles.progress}>
-          <Progress value={overall / 100} />
-          <Txt v="caption" muted>
-            {doneTotal} of {allContent.length} items done · {overall}%
-          </Txt>
-        </View>
-      </Lead>
+      <Bento>
+        <RingHero
+          value={overall / 100}
+          title={course.title}
+          body={course.tagline}
+          caption={`${doneTotal} of ${allContent.length} items done`}
+          accessibilityLabel="Course progress"
+        />
+      </Bento>
 
       <SectionHeader title={`Modules (${modules.length})`} />
       {modules.length === 0 ? (
@@ -66,35 +76,46 @@ export default function StudentCourse() {
           <EmptyState fill={false} icon="folder-open-outline" title="No modules published yet" />
         </Group>
       ) : (
-        <Group separatorInset={spacing.lg + 24 + spacing.md}>
-          {modules.map((module) => {
-            const items = contentOf(module.id);
-            const doneCount = items.filter((i) => student.completedContentIds.includes(i.id)).length;
-            const complete = items.length > 0 && doneCount === items.length;
+        <Bento>
+          {pairs(modules).map((row) => (
+            <BentoRow key={row[0].id}>
+              {row.map((module) => {
+                const items = contentOf(module.id);
+                const doneCount = items.filter((i) => student.completedContentIds.includes(i.id)).length;
+                const complete = items.length > 0 && doneCount === items.length;
 
-            return (
-              <Row
-                key={module.id}
-                leading={
-                  <View style={styles.marker}>
-                    {complete ? (
-                      <Icon source="check-circle" size={22} color={colors.success} />
-                    ) : (
-                      <Txt v="bodyStrong" muted chrome>
-                        {module.order}
+                return (
+                  <Tile
+                    key={module.id}
+                    tone={complete ? 'primary' : 'card'}
+                    onPress={() => router.push({ pathname: '/(student)/module/[id]', params: { id: module.id } })}
+                    pushes
+                    accessibilityLabel={`Module ${module.order}, ${module.title}, ${doneCount} of ${items.length} done`}
+                    style={styles.module}
+                  >
+                    <ProgressRing
+                      value={percent(doneCount, items.length) / 100}
+                      size={52}
+                      stroke={5}
+                      trackColor={complete ? colors.card : undefined}
+                    />
+                    <View style={styles.moduleBody}>
+                      <Txt v="label" muted>
+                        Module {module.order}
                       </Txt>
-                    )}
-                  </View>
-                }
-                title={module.title}
-                subtitle={complete ? 'Completed' : `${doneCount} of ${items.length} done`}
-                onPress={() => router.push({ pathname: '/(student)/module/[id]', params: { id: module.id } })}
-                pushes
-                accessibilityLabel={`Module ${module.order}, ${module.title}, ${doneCount} of ${items.length} done`}
-              />
-            );
-          })}
-        </Group>
+                      <Txt v="bodyStrong" numberOfLines={2}>
+                        {module.title}
+                      </Txt>
+                      <Txt v="caption" muted>
+                        {complete ? 'Completed' : `${doneCount} of ${items.length} done`}
+                      </Txt>
+                    </View>
+                  </Tile>
+                );
+              })}
+            </BentoRow>
+          ))}
+        </Bento>
       )}
     </Screen>
   );
@@ -102,6 +123,6 @@ export default function StudentCourse() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  progress: { gap: spacing.sm, marginTop: spacing.md },
-  marker: { width: 24, alignItems: 'center' },
+  module: { gap: spacing.md },
+  moduleBody: { gap: 2 },
 });

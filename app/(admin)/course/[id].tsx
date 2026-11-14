@@ -3,10 +3,11 @@ import { StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { BatchRow } from '@/src/components/BatchRow';
+import { Bento, BentoRow, FactTile, StatTile, Tile } from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
 import { ModuleGroup } from '@/src/components/ModuleGroup';
 import { Screen } from '@/src/components/Screen';
-import { EmptyState, Group, InfoRow, Lead, SectionHeader } from '@/src/components/ui';
+import { EmptyState, Group, SectionHeader, Txt } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { formatCurrency } from '@/src/utils/format';
@@ -43,16 +44,25 @@ export default function AdminCourseDetail() {
     <>
       <Stack.Screen options={{ title: course.code }} />
       <Screen>
-        <Lead title={course.title} body={course.description} />
-
-        <SectionHeader title="Details" />
-        <Group>
-          <InfoRow label="Level" value={course.level} />
-          <InfoRow label="Duration" value={`${course.durationWeeks} weeks`} />
-          <InfoRow label="Fee" value={formatCurrency(course.fee)} />
-          <InfoRow label="Status" value={course.active ? 'Open for registration' : 'Closed'} />
-          <InfoRow label="Students" value={students.length} />
-        </Group>
+        <Bento>
+          <Tile tone="primary">
+            <Txt v="label" muted>
+              {course.active ? 'Open for registration' : 'Closed for registration'}
+            </Txt>
+            <Txt v="title" accessibilityRole="header">
+              {course.title}
+            </Txt>
+            {!!course.description && <Txt muted>{course.description}</Txt>}
+          </Tile>
+          <BentoRow>
+            <StatTile span={2} icon="account-group-outline" value={students.length} label="Students" />
+            <FactTile span={3} icon="cash" label="Fee" value={formatCurrency(course.fee)} />
+          </BentoRow>
+          <BentoRow>
+            <FactTile span={3} icon="stairs" label="Level" value={course.level} />
+            <FactTile span={2} icon="timer-outline" label="Duration" value={`${course.durationWeeks} weeks`} />
+          </BentoRow>
+        </Bento>
 
         <SectionHeader title={`Batches (${batches.length})`} />
         {batches.length === 0 ? (

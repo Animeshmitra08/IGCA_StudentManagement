@@ -2,14 +2,15 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
+import { batchTone, scheduleTiles } from '@/src/components/BatchTiles';
+import { Bento, RingHero } from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
 import { Screen } from '@/src/components/Screen';
 import { StudentRow } from '@/src/components/StudentRow';
-import { AVATAR_INSET, EmptyState, Group, InfoRow, Lead, Progress, SectionHeader, Txt } from '@/src/components/ui';
+import { AVATAR_INSET, EmptyState, Group, SectionHeader } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
-import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
-import { formatDate, titleCase } from '@/src/utils/format';
+import { titleCase } from '@/src/utils/format';
 
 export default function TeacherBatchDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -41,26 +42,18 @@ export default function TeacherBatchDetail() {
     <>
       <Stack.Screen options={{ title: batch.code }} />
       <Screen>
-        <Lead
-          overline={`${titleCase(batch.status)} · ${batch.mode}`}
-          title={course?.title ?? batch.code}
-        >
-          <View style={styles.seats}>
-            <Progress value={enrolled.length / batch.capacity} color={full ? colors.error : undefined} />
-            <Txt v="caption" color={full ? colors.error : colors.muted}>
-              {full ? `Full · ${batch.capacity} seats` : `${enrolled.length} of ${batch.capacity} seats taken`}
-            </Txt>
-          </View>
-        </Lead>
-
-        <SectionHeader title="Sessions" />
-        <Group>
-          <InfoRow label="Days" value={batch.days} />
-          <InfoRow label="Time" value={`${batch.startTime} - ${batch.endTime}`} />
-          <InfoRow label="Room" value={batch.room} />
-          <InfoRow label="Starts" value={formatDate(batch.startDate)} />
-          <InfoRow label="Ends" value={formatDate(batch.endDate)} />
-        </Group>
+        <Bento>
+          <RingHero
+            tone={batchTone(batch.status)}
+            value={enrolled.length / batch.capacity}
+            ringColor={full ? colors.error : undefined}
+            overline={`${titleCase(batch.status)} · ${batch.mode}`}
+            title={course?.title ?? batch.code}
+            caption={full ? `Full · ${batch.capacity} seats` : `${enrolled.length} of ${batch.capacity} seats taken`}
+            accessibilityLabel="Seats taken"
+          />
+          {scheduleTiles(batch)}
+        </Bento>
 
         <SectionHeader title={`Students (${enrolled.length})`} />
         {enrolled.length === 0 ? (
@@ -81,5 +74,4 @@ export default function TeacherBatchDetail() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  seats: { gap: spacing.sm, marginTop: spacing.md },
 });

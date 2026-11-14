@@ -3,9 +3,11 @@ import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle }
 import { Icon } from 'react-native-paper';
 import Animated from 'react-native-reanimated';
 import { Enter, EnterOrderContext, useCountUp, useFillProgress, usePressScale } from './motion';
+import { ProgressRing } from './ProgressRing';
 import { InkContext, Txt } from './ui';
 import { radius, spacing, type AppTheme, type TypeVariant } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
+import type { StudentStatus } from '@/src/types';
 
 /**
  * Bento grid: tiles of different sizes packed into rows, one idea per tile.
@@ -96,6 +98,21 @@ export function tileColors(colors: AppTheme['colors'], tone: TileTone) {
       return { bg: colors.neutralContainer, border: colors.neutralContainer, accent: colors.onSurfaceVariant };
     case 'card':
       return { bg: colors.card, border: colors.border, accent: colors.primary };
+  }
+}
+
+/** Tile tone for a point in the approval lifecycle (same mapping as `statusColors`). */
+export function statusTone(status: StudentStatus): TileTone {
+  switch (status) {
+    case 'PENDING_APPROVAL':
+      return 'warning';
+    case 'APPROVED':
+    case 'ALLOCATED':
+      return 'info';
+    case 'ACTIVE':
+      return 'primary';
+    case 'REJECTED':
+      return 'error';
   }
 }
 
@@ -281,7 +298,64 @@ export function FactTile({
   );
 }
 
+/**
+ * The lead tile of a screen that tracks progress: the ring on the left, and the title
+ * with its supporting lines on the right.
+ */
+export function RingHero({
+  value,
+  overline,
+  title,
+  body,
+  caption,
+  tone = 'primary',
+  ringColor,
+  accessibilityLabel,
+}: {
+  /** 0 to 1. */
+  value: number;
+  overline?: string;
+  title: string;
+  body?: string;
+  caption?: string;
+  tone?: TileTone;
+  ringColor?: string;
+  accessibilityLabel?: string;
+}) {
+  const { colors } = useAppTheme();
+  return (
+    <Tile tone={tone} style={styles.hero}>
+      <ProgressRing
+        value={value}
+        size={96}
+        color={ringColor}
+        // On a tinted tile the track is the card colour, so it reads as a cut-out.
+        trackColor={tone === 'card' ? undefined : colors.card}
+        accessibilityLabel={accessibilityLabel}
+      />
+      <View style={styles.heroBody}>
+        {!!overline && (
+          <Txt v="label" muted>
+            {overline}
+          </Txt>
+        )}
+        <Txt v="title" accessibilityRole="header">
+          {title}
+        </Txt>
+        {!!body && <Txt muted>{body}</Txt>}
+        {!!caption && (
+          <Txt v="caption" color={ringColor} muted={!ringColor}>
+            {caption}
+          </Txt>
+        )}
+      </View>
+    </Tile>
+  );
+}
+
 const styles = StyleSheet.create({
+  hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  heroBody: { flex: 1, gap: spacing.xs },
   grid: { gap: GAP },
   row: { flexDirection: 'row', alignItems: 'stretch', gap: GAP },
   col: { gap: GAP },

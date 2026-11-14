@@ -120,21 +120,6 @@ export function GroupBody({ children, style }: { children: React.ReactNode; styl
   return <View style={[styles.groupBody, style]}>{children}</View>;
 }
 
-/** Thin progress track on the neutral ramp. */
-export function Progress({ value, color, height = 4 }: { value: number; color?: string; height?: number }) {
-  const { colors } = useAppTheme();
-  const pct = Math.max(0, Math.min(1, value));
-  return (
-    <View
-      style={[styles.track, { height, backgroundColor: colors.neutralContainer }]}
-      accessibilityRole="progressbar"
-      accessibilityValue={{ min: 0, max: 100, now: Math.round(pct * 100) }}
-    >
-      <View style={{ width: `${pct * 100}%`, height, backgroundColor: color ?? colors.primary }} />
-    </View>
-  );
-}
-
 /* ------------------------------------------------------------------ Lead */
 
 /**
@@ -583,7 +568,6 @@ const styles = StyleSheet.create({
   separator: { height: StyleSheet.hairlineWidth },
   groupBody: { padding: spacing.lg, gap: spacing.sm },
   lead: { gap: spacing.xs, paddingHorizontal: spacing.xs, paddingTop: spacing.sm },
-  track: { borderRadius: radius.pill, overflow: 'hidden' },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',

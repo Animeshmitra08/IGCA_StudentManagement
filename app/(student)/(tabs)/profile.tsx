@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Icon } from 'react-native-paper';
 
+import { Bento, BentoRow, FactTile, Tile } from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
 import { DocumentsGroup } from '@/src/components/DocumentsGroup';
 import { useConfirmSignOut } from '@/src/components/HeaderButton';
@@ -42,26 +43,39 @@ export default function StudentProfile() {
 
   return (
     <Screen tabbed>
-      <View style={styles.identity}>
-        <Avatar name={student.fullName} size={56} />
-        <View style={styles.identityBody}>
-          <Txt v="title" accessibilityRole="header">
-            {student.fullName}
-          </Txt>
-          <Txt muted numberOfLines={1}>
-            {student.email}
-          </Txt>
-          <View style={styles.chip}>
-            <StatusChip status={student.status} />
+      <Bento>
+        <Tile style={styles.identity}>
+          <Avatar name={student.fullName} size={56} />
+          <View style={styles.identityBody}>
+            <Txt v="title" accessibilityRole="header">
+              {student.fullName}
+            </Txt>
+            <Txt muted numberOfLines={1}>
+              {student.email}
+            </Txt>
+            <View style={styles.chip}>
+              <StatusChip status={student.status} />
+            </View>
           </View>
-        </View>
-      </View>
+        </Tile>
+        <BentoRow>
+          <FactTile
+            icon="card-account-details-outline"
+            label="Registration no"
+            value={student.registrationNo}
+          />
+          <FactTile
+            tone={batch ? 'primary' : 'neutral'}
+            icon="calendar-month-outline"
+            label="Batch"
+            value={batch?.code ?? 'Not allocated yet'}
+          />
+        </BentoRow>
+        <FactTile icon="book-open-page-variant-outline" label="Course" value={course?.title} />
+      </Bento>
 
-      <SectionHeader title="Enrolment" />
+      <SectionHeader title="Application" />
       <Group>
-        <InfoRow label="Registration no" value={student.registrationNo} />
-        <InfoRow label="Course" value={course?.title} />
-        <InfoRow label="Batch" value={batch?.code ?? 'Not allocated yet'} />
         <InfoRow label="Applied on" value={formatDate(student.appliedOn)} />
         <InfoRow label="Reviewed on" value={student.reviewedOn ? formatDate(student.reviewedOn) : 'Waiting for review'} />
       </Group>
@@ -102,13 +116,7 @@ export default function StudentProfile() {
 }
 
 const styles = StyleSheet.create({
-  identity: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-    alignItems: 'flex-start',
-    paddingHorizontal: spacing.xs,
-    paddingTop: spacing.sm,
-  },
+  identity: { flexDirection: 'row', gap: spacing.lg, alignItems: 'flex-start' },
   identityBody: { flex: 1, gap: spacing.xs },
   chip: { marginTop: spacing.xs },
   signOut: { marginTop: spacing.xxl },

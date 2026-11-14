@@ -248,7 +248,9 @@ function TabButton({
             v="label"
             chrome
             numberOfLines={1}
-            onLayout={(event) => setMeasured(Math.ceil(event.nativeEvent.layout.width))}
+            // Layout widths can come back rounded down; a point of slack keeps the last
+            // letter from turning into an ellipsis.
+            onLayout={(event) => setMeasured(Math.ceil(event.nativeEvent.layout.width) + 2)}
           >
             {title}
           </Txt>

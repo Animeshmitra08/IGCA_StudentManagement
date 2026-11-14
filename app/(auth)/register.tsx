@@ -14,6 +14,7 @@ import { usePreventRemove } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 
 import { useDataGate } from '@/src/components/DataGate';
+import { ProgressRing } from '@/src/components/ProgressRing';
 import { ActionBar } from '@/src/components/Screen';
 import {
   Group,
@@ -587,7 +588,7 @@ export default function RegisterScreen() {
 /* ---------------------------------------------------------- sub views */
 
 function StepProgress({ step }: { step: number }) {
-  const { colors } = useAppTheme();
+  const next = step + 1 < STEPS.length ? STEPS[step + 1] : undefined;
   return (
     <View
       style={styles.progress}
@@ -595,19 +596,19 @@ function StepProgress({ step }: { step: number }) {
       accessibilityRole="progressbar"
       accessibilityLabel={`Step ${step + 1} of ${STEPS.length}, ${STEPS[step].title}`}
     >
-      <Txt v="label" muted chrome>
-        Step {step + 1} of {STEPS.length}
-      </Txt>
-      <View style={styles.segments}>
-        {STEPS.map((item, index) => (
-          <View
-            key={item.key}
-            style={[
-              styles.segment,
-              { backgroundColor: index <= step ? colors.primary : colors.neutralContainer },
-            ]}
-          />
-        ))}
+      <ProgressRing
+        value={(step + 1) / STEPS.length}
+        size={52}
+        stroke={5}
+        label={`${step + 1}/${STEPS.length}`}
+      />
+      <View style={styles.progressBody}>
+        <Txt v="label" muted chrome>
+          Step {step + 1} of {STEPS.length}
+        </Txt>
+        <Txt v="caption" muted numberOfLines={1}>
+          {next ? `Next: ${next.title}` : 'Last step'}
+        </Txt>
       </View>
     </View>
   );
@@ -750,9 +751,15 @@ function PickerField({
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  progress: { gap: spacing.sm, paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm },
-  segments: { flexDirection: 'row', gap: spacing.xs },
-  segment: { flex: 1, height: 4, borderRadius: radius.pill },
+  progress: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  progressBody: { flex: 1, gap: 2 },
   body: { padding: spacing.lg, paddingBottom: spacing.xxl },
   intro: { gap: spacing.xs, paddingHorizontal: spacing.xs, marginBottom: spacing.xl },
   fields: { gap: spacing.md },

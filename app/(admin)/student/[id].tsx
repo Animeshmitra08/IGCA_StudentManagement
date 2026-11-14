@@ -5,6 +5,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BatchRow } from '@/src/components/BatchRow';
+import { Bento, BentoRow, FactTile, Tile } from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
 import { DocumentsGroup } from '@/src/components/DocumentsGroup';
 import { ActionBar, Screen } from '@/src/components/Screen';
@@ -169,22 +170,42 @@ export default function AdminStudentDetail() {
 
       <View style={styles.root}>
         <Screen noBottomInset>
-          <View style={styles.identity}>
-            <Avatar name={student.fullName} size={56} />
-            <View style={styles.identityBody}>
-              <Txt v="title" accessibilityRole="header">
-                {student.fullName}
-              </Txt>
-              {!!course && (
-                <Txt muted numberOfLines={1}>
-                  {course.title}
+          <Bento>
+            <Tile style={styles.identity}>
+              <Avatar name={student.fullName} size={56} />
+              <View style={styles.identityBody}>
+                <Txt v="title" accessibilityRole="header">
+                  {student.fullName}
                 </Txt>
-              )}
-              <View style={styles.chip}>
-                <StatusChip status={student.status} />
+                {!!course && (
+                  <Txt muted numberOfLines={1}>
+                    {course.title}
+                  </Txt>
+                )}
+                <View style={styles.chip}>
+                  <StatusChip status={student.status} />
+                </View>
               </View>
-            </View>
-          </View>
+            </Tile>
+            <BentoRow>
+              <FactTile
+                span={3}
+                icon="calendar-start"
+                label="Applied on"
+                value={formatDate(student.appliedOn)}
+              />
+              <FactTile
+                span={2}
+                tone={student.reviewedOn ? 'card' : 'warning'}
+                icon="calendar-check-outline"
+                label="Reviewed on"
+                value={student.reviewedOn ? formatDate(student.reviewedOn) : 'Waiting'}
+              />
+            </BentoRow>
+            {!!student.reviewedBy && (
+              <FactTile icon="account-check-outline" label="Reviewed by" value={student.reviewedBy} />
+            )}
+          </Bento>
 
           <SectionHeader title="Progress" />
           {student.status === 'REJECTED' ? (
@@ -241,13 +262,6 @@ export default function AdminStudentDetail() {
 
           <SectionHeader title={`Documents (${student.documents.length})`} />
           <DocumentsGroup documents={student.documents} />
-
-          <SectionHeader title="Application" />
-          <Group>
-            <InfoRow label="Applied on" value={formatDate(student.appliedOn)} />
-            <InfoRow label="Reviewed on" value={student.reviewedOn ? formatDate(student.reviewedOn) : null} />
-            <InfoRow label="Reviewed by" value={student.reviewedBy} />
-          </Group>
         </Screen>
 
         <Snackbar visible={!!toast} onDismiss={() => setToast('')} duration={3000}>
@@ -357,13 +371,7 @@ export default function AdminStudentDetail() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  identity: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-    alignItems: 'flex-start',
-    paddingHorizontal: spacing.xs,
-    paddingTop: spacing.sm,
-  },
+  identity: { flexDirection: 'row', gap: spacing.lg, alignItems: 'flex-start' },
   identityBody: { flex: 1, gap: spacing.xs },
   chip: { marginTop: spacing.xs },
   action: { flex: 1 },

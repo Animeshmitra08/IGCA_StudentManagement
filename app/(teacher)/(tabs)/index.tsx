@@ -4,9 +4,10 @@ import { Icon } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
 import { BatchRow } from '@/src/components/BatchRow';
+import { Bento, BentoCol, BentoRow, CountUp, StatTile, Tile } from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
 import { Screen } from '@/src/components/Screen';
-import { EmptyState, Group, Row, SectionHeader, Txt } from '@/src/components/ui';
+import { Avatar, EmptyState, Group, SectionHeader, Txt } from '@/src/components/ui';
 import { useAuth } from '@/src/context/AuthContext';
 import { useData } from '@/src/context/DataContext';
 import { spacing } from '@/src/theme/theme';
@@ -26,15 +27,48 @@ export default function TeacherOverview() {
   const myStudents = myBatches.flatMap((b) => studentsOfBatch(b.id));
   const myContent = myCourseIds.flatMap((id) => courseContent(id));
   const myModules = myCourseIds.flatMap((id) => modulesOf(id));
+  const across = myStudents.length === 1 ? 'student across your batches' : 'students across your batches';
 
   return (
     <Screen tabbed refreshing={refreshing} onRefresh={refresh}>
-      {!!user && (
-        <View style={styles.identity}>
-          <Txt v="heading">{user.name}</Txt>
-          {!!user.designation && <Txt muted>{user.designation}</Txt>}
-        </View>
-      )}
+      <Bento>
+        {!!user && (
+          <Tile style={styles.identity}>
+            <Avatar name={user.name} size={56} />
+            <View style={styles.identityBody}>
+              <Txt v="title" accessibilityRole="header">
+                {user.name}
+              </Txt>
+              {!!user.designation && <Txt muted>{user.designation}</Txt>}
+            </View>
+          </Tile>
+        )}
+        <BentoRow>
+          <Tile
+            span={3}
+            tone="solid"
+            onPress={() => router.push('/(teacher)/(tabs)/students')}
+            pushes
+            accessibilityLabel={`${myStudents.length} ${across}`}
+            style={styles.hero}
+          >
+            <Icon source="account-group-outline" size={26} color={colors.onPrimary} />
+            <View>
+              <CountUp value={myStudents.length} v="display" />
+              <Txt>{across}</Txt>
+            </View>
+          </Tile>
+          <BentoCol span={2}>
+            <StatTile tone="info" icon="calendar-month-outline" value={myBatches.length} label="Batches" />
+            <StatTile
+              icon="play-box-multiple-outline"
+              value={myContent.length}
+              label={`Items in ${myModules.length} modules`}
+              onPress={() => router.push('/(teacher)/(tabs)/content')}
+            />
+          </BentoCol>
+        </BentoRow>
+      </Bento>
 
       <SectionHeader title={`Your batches (${myBatches.length})`} />
       {myBatches.length === 0 ? (
@@ -60,32 +94,12 @@ export default function TeacherOverview() {
           ))}
         </Group>
       )}
-
-      <SectionHeader title="Teaching" />
-      <Group>
-        <Row
-          leading={<Icon source="account-group-outline" size={22} color={colors.muted} />}
-          title="Students"
-          subtitle="Across all your batches"
-          trailing={<Txt v="bodyStrong" muted>{myStudents.length}</Txt>}
-          onPress={() => router.push('/(teacher)/(tabs)/students')}
-          pushes
-          accessibilityLabel={`Students, ${myStudents.length}`}
-        />
-        <Row
-          leading={<Icon source="play-box-multiple-outline" size={22} color={colors.muted} />}
-          title="Course content"
-          subtitle={`${myModules.length} modules`}
-          trailing={<Txt v="bodyStrong" muted>{myContent.length}</Txt>}
-          onPress={() => router.push('/(teacher)/(tabs)/content')}
-          pushes
-          accessibilityLabel={`Course content, ${myContent.length} items in ${myModules.length} modules`}
-        />
-      </Group>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  identity: { gap: 2, paddingHorizontal: spacing.xs, paddingTop: spacing.sm },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+  identityBody: { flex: 1, gap: 2 },
+  hero: { justifyContent: 'space-between', gap: spacing.xl },
 });

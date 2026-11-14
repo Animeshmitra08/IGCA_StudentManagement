@@ -1,28 +1,29 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { Icon } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 
-import { BatchRow } from '@/src/components/BatchRow';
+import {
+  Bento,
+  BentoCol,
+  BentoRow,
+  FactTile,
+  StatTile,
+  statusTone,
+  Tile,
+  tileColors,
+} from '@/src/components/Bento';
 import { useDataGate } from '@/src/components/DataGate';
 import { useConfirmSignOut } from '@/src/components/HeaderButton';
+import { ProgressRing } from '@/src/components/ProgressRing';
 import { Screen } from '@/src/components/Screen';
 import { StatusTimeline } from '@/src/components/StatusTimeline';
-import {
-  EmptyState,
-  Group,
-  GroupBody,
-  Lead,
-  Notice,
-  Progress,
-  SectionHeader,
-  Touchable,
-  Txt,
-} from '@/src/components/ui';
+import { EmptyState, Group, GroupBody, SectionHeader, Txt } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
 import { useCurrentStudent } from '@/src/hooks/useCurrentStudent';
 import { spacing, STATUS_META } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
-import { percent } from '@/src/utils/format';
+import { formatShortDate, percent } from '@/src/utils/format';
 
 export default function StudentHome() {
   const { colors } = useAppTheme();
@@ -51,61 +52,96 @@ export default function StudentHome() {
   const done = student.completedContentIds.length;
   const progress = percent(done, content.length);
   const meta = STATUS_META[student.status];
+  const tone = statusTone(student.status);
 
   return (
     <Screen tabbed refreshing={refreshing} onRefresh={refresh}>
-      <Lead overline={student.registrationNo} title={meta.label} body={meta.description} />
+      <Bento>
+        <Tile tone={tone}>
+          <View style={styles.statusHead}>
+            <Icon source={meta.icon} size={28} color={tileColors(colors, tone).accent} />
+            <Txt v="label" muted>
+              {student.registrationNo}
+            </Txt>
+          </View>
+          <Txt v="title" accessibilityRole="header">
+            {meta.label}
+          </Txt>
+          <Txt muted>{meta.description}</Txt>
+        </Tile>
 
-      {!hasCourseAccess && student.status !== 'REJECTED' && (
-        <Notice
-          tone="neutral"
-          icon="lock-outline"
-          title="Course content is locked"
-          message="Modules unlock once an admin approves your registration and allocates a batch."
-          style={styles.notice}
-        />
-      )}
-
-      {hasCourseAccess && !!course && (
-        <>
-          <SectionHeader title="Course" />
-          <Group>
-            <Touchable
-              onPress={() => router.push('/(student)/(tabs)/course')}
-              style={styles.course}
-              accessibilityLabel={`${course.title}, ${progress} percent complete`}
-            >
-              <Txt v="heading">{course.title}</Txt>
+        {!hasCourseAccess && student.status !== 'REJECTED' && (
+          <Tile tone="neutral" style={styles.locked}>
+            <Icon source="lock-outline" size={22} color={colors.onSurfaceVariant} />
+            <View style={styles.lockedBody}>
+              <Txt v="bodyStrong">Course content is locked</Txt>
               <Txt v="caption" muted>
-                {modules.length} modules · {done} of {content.length} items done
+                Modules unlock once an admin approves your registration and allocates a batch.
               </Txt>
-              <View style={styles.progressRow}>
-                <View style={styles.progressTrack}>
-                  <Progress value={progress / 100} />
-                </View>
-                <Txt v="label" chrome>
-                  {progress}%
-                </Txt>
-              </View>
-            </Touchable>
-          </Group>
-        </>
-      )}
+            </View>
+          </Tile>
+        )}
 
-      {!!batch && (
-        <>
-          <SectionHeader title="Batch" />
-          <Group>
-            <BatchRow
-              batch={batch}
-              seatsTaken={0}
-              hideSeats
+        {hasCourseAccess && !!course && (
+          <BentoRow>
+            <Tile
+              span={3}
+              onPress={() => router.push('/(student)/(tabs)/course')}
+              pushes
+              accessibilityLabel={`${course.title}, ${progress} percent complete`}
+              style={styles.course}
+            >
+              <Txt v="label" muted>
+                Course progress
+              </Txt>
+              <ProgressRing value={progress / 100} size={116} style={styles.ring} />
+              <Txt v="bodyStrong" numberOfLines={2}>
+                {course.title}
+              </Txt>
+            </Tile>
+            <BentoCol span={2}>
+              <StatTile icon="view-grid-outline" value={modules.length} label="Modules" />
+              <StatTile
+                tone="primary"
+                icon="check-circle-outline"
+                value={done}
+                label={`of ${content.length} items done`}
+              />
+            </BentoCol>
+          </BentoRow>
+        )}
+
+        {!!batch && (
+          <BentoRow>
+            <Tile
+              span={3}
               onPress={() => router.push('/(student)/(tabs)/batch')}
               pushes
+              accessibilityLabel={`Batch ${batch.code}, ${batch.days}, ${batch.startTime} to ${batch.endTime}`}
+            >
+              <Txt v="label" muted>
+                Your batch
+              </Txt>
+              <Txt v="heading" numberOfLines={1}>
+                {batch.code}
+              </Txt>
+              <Txt v="caption" muted numberOfLines={1}>
+                {batch.days}
+              </Txt>
+              <Txt v="caption" muted numberOfLines={1}>
+                {batch.startTime} - {batch.endTime}
+              </Txt>
+            </Tile>
+            <FactTile
+              span={2}
+              tone="info"
+              icon="calendar-start"
+              label="Starts"
+              value={formatShortDate(batch.startDate)}
             />
-          </Group>
-        </>
-      )}
+          </BentoRow>
+        )}
+      </Bento>
 
       <SectionHeader title="Your enrolment" />
       {student.status === 'REJECTED' ? (
@@ -123,8 +159,14 @@ export default function StudentHome() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  notice: { marginTop: spacing.lg },
-  course: { padding: spacing.lg, gap: spacing.xs },
-  progressRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
-  progressTrack: { flex: 1 },
+  statusHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  locked: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  lockedBody: { flex: 1, gap: 2 },
+  course: { gap: spacing.md },
+  ring: { alignSelf: 'center' },
 });

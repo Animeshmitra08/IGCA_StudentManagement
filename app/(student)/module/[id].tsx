@@ -3,6 +3,7 @@ import { Linking, StyleSheet, View } from 'react-native';
 import { Button, Modal, Portal, Snackbar } from 'react-native-paper';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
+import { Bento, RingHero } from '@/src/components/Bento';
 import { ContentRow } from '@/src/components/ContentRow';
 import { useDataGate } from '@/src/components/DataGate';
 import { Screen } from '@/src/components/Screen';
@@ -10,9 +11,7 @@ import {
   EmptyState,
   Group,
   InfoRow,
-  Lead,
   Notice,
-  Progress,
   SectionHeader,
   Txt,
 } from '@/src/components/ui';
@@ -72,14 +71,15 @@ export default function ModuleDetail() {
       <Stack.Screen options={{ title: `Module ${module.order}` }} />
 
       <Screen>
-        <Lead title={module.title} body={module.description}>
-          <View style={styles.progress}>
-            <Progress value={pct / 100} />
-            <Txt v="caption" muted>
-              {doneCount} of {items.length} done · {pct}%
-            </Txt>
-          </View>
-        </Lead>
+        <Bento>
+          <RingHero
+            value={pct / 100}
+            title={module.title}
+            body={module.description}
+            caption={`${doneCount} of ${items.length} done`}
+            accessibilityLabel="Module progress"
+          />
+        </Bento>
 
         {!hasCourseAccess && (
           <Notice
@@ -159,7 +159,6 @@ export default function ModuleDetail() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  progress: { gap: spacing.sm, marginTop: spacing.md },
   notice: { marginTop: spacing.lg },
   modal: { margin: spacing.lg, padding: spacing.xl, borderRadius: radius.lg },
   modalBody: { gap: spacing.lg },

@@ -1,15 +1,17 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Icon } from 'react-native-paper';
-import { Progress, Touchable, Txt } from './ui';
+import { ProgressRing } from './ProgressRing';
+import { Touchable, Txt } from './ui';
 import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { formatDate, percent, titleCase } from '@/src/utils/format';
 import type { Batch, Course } from '@/src/types';
 
 /**
- * One batch in a list: code, schedule line and seat usage. With `selected` defined it
- * acts as a radio option (the allocate-batch picker).
+ * One batch in a list: code, schedule lines, and seat usage as a small ring at the end
+ * of the row. With `selected` defined it acts as a radio option (the allocate-batch
+ * picker).
  */
 export function BatchRow({
   batch,
@@ -69,16 +71,21 @@ export function BatchRow({
         </Txt>
 
         {!hideSeats && (
-          <View style={styles.seats}>
-            <View style={styles.track}>
-              <Progress value={fill / 100} color={full ? colors.error : undefined} />
-            </View>
-            <Txt v="caption" color={full ? colors.error : colors.muted}>
-              {full ? 'Full' : `${seatsTaken} of ${batch.capacity} seats`}
-            </Txt>
-          </View>
+          <Txt v="caption" color={full ? colors.error : colors.muted} numberOfLines={1}>
+            {full ? `Full · ${batch.capacity} seats` : `${seatsTaken} of ${batch.capacity} seats taken`}
+          </Txt>
         )}
       </View>
+
+      {!hideSeats && (
+        <ProgressRing
+          value={fill / 100}
+          size={48}
+          stroke={5}
+          color={full ? colors.error : undefined}
+          accessibilityLabel="Seats taken"
+        />
+      )}
 
       {pushes && <Icon source="chevron-right" size={20} color={colors.muted} />}
     </>
@@ -108,6 +115,4 @@ const styles = StyleSheet.create({
   },
   body: { flex: 1, gap: 2 },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  seats: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
-  track: { flex: 1 },
 });

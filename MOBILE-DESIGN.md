@@ -1,29 +1,36 @@
 # Mobile design system
 
 The rules this app's UI is built on. Read this before adding a screen or changing a
-token. The audit that motivated it is in `design-baseline.json`.
+token. The audit that motivated the first pass is in `design-baseline.json`; the
+13 Nov 2026 redesign (pill tab bar, rings, bento) is recorded in `REDESIGN-PROGRESS.md`.
 
 ## App read
 
 An admin console, a teacher view and a student portal for one institute. People open it
-to do a job (review a registration, check a batch, see what's next in the course), not
-to browse. The UI should feel like a well-kept system app: calm, dense enough to scan,
-and with nothing decorative competing with the data.
+to do a job (review a registration, check a batch, see what's next in the course). The
+first pass made it calm and flat; the owner found that too minimal. The current
+direction keeps the theme and the copy, and adds shape, colour blocks and motion: each
+screen leads with a bento grid that puts its key numbers in tiles, progress is a ring,
+and the tab bar is a floating pill.
 
-**Dials:** expression 3 · motion 1 · density 5.
-Low expression means native chrome (headers, tab bar) and no hero bands. Low motion
-means press feedback and the skeleton pulse only. Medium density means grouped lists
-with 56pt rows.
+**Dials:** expression 6 · motion 6 · density 4.
+Expression 6 means a custom tab bar, tinted and solid tiles, and one hero tile per
+screen, but still native headers and no decorative imagery. Motion 6 means screens
+enter with a stagger, rings and counters fill, and tiles and tabs spring under the
+finger; nothing loops and everything follows "reduce motion". Density 4 means tiles for
+the headline facts and grouped lists (56pt rows) for everything long.
 
 ## Tokens: `src/theme/theme.ts`
 
 | Token | Rule |
 | --- | --- |
-| `spacing` | 4/8 grid. Screen padding is always `lg` (16). |
-| `radius` | `sm` 6 inputs, `md` 10 groups and buttons, `lg` 14 dialogs and modals, `pill` chips and avatars only. |
+| `spacing` | 4/8 grid. Screen padding is always `lg` (16). Bento gap is `md` (12). |
+| `radius` | `sm` 6 inputs, `md` 10 buttons, `lg` 14 dialogs, notices and the search field, `xl` 22 bento tiles and grouped lists, `pill` chips, avatars, and the tab bar with its buttons. |
 | `type` | `display` (one hero number per screen at most), `title`, `heading`, `body`, `bodyStrong`, `label`, `caption`. Use them through `<Txt v="...">` and never write `fontSize` or `fontWeight` in a screen. |
-| Color | One accent: `primary` (green). It also means "done or active". `secondary` and `tertiary` are neutral ink, so Paper never adds a second hue. Status colors come from `statusColors()` and always pair color with an icon and a label. |
-| `elevation` | Content is flat. `raised` is only for bars above scrolling content (`ActionBar`). |
+| Color | One accent: `primary` (green). It also means "done or active". `secondary` and `tertiary` are neutral ink, so Paper never adds a second hue. Status colors come from `statusColors()` / `statusTone()` and always pair color with an icon and a label. |
+| Tile tones | `card` (default), `solid` (the accent; one per screen, for the hero number), and the tinted containers `primary`, `info`, `warning`, `error`, `neutral`. A tint must mean something (a status, "done", "needs attention"); it is not decoration. |
+| `elevation` | Content is flat: hairlines and tinted tiles, no shadows. `raised` is for bars docked above scrolling content (`ActionBar`); `floating` is for the pill tab bar only. |
+| `tabBar` | Height 64, gap 12. Tab screens pad their scroll content by this much (handled by `Screen` and `GroupedList` with `tabbed`). |
 | Dark mode | `DarkTheme` mirrors every key. Light and dark are both checked on every change. |
 
 Screens and components contain zero hex or rgba values.
@@ -32,26 +39,50 @@ Screens and components contain zero hex or rgba values.
 
 | Need | Use |
 | --- | --- |
-| Text | `Txt` (`chrome` caps Dynamic Type at 1.3x for text inside fixed-size controls) |
+| Text | `Txt` (`chrome` caps Dynamic Type at 1.3x for text inside fixed-size controls). On a `solid` tile it turns to the on-accent colour by itself (`InkContext`). |
+| The lead of a screen | `Bento` with `BentoRow`, `BentoCol` and `Tile`. Ready-made tiles: `StatTile` (a count), `FactTile` (a labelled fact), `RingHero` (ring + title). Batch schedules: `scheduleTiles(batch)`. |
+| Progress | `ProgressRing`: percentage in the centre, or a fixed label such as `2/5`. There is no linear progress bar. |
+| A number that matters | `CountUp` (counts from zero each time the screen opens) |
 | A group of rows | `Group` with `Row`, `InfoRow`, `BatchRow`, `StudentRow`, `ContentRow`, `GroupBody` for non-row content |
-| A list that can grow | `GroupedList` (a virtualized FlatList with the same look as `Group`), never `Screen` + `.map` |
-| Short fixed content | `Screen` (scroll, padding, pull to refresh, bottom inset) |
-| Title block under the header | `Lead` |
+| A list that can grow | `GroupedList` (a virtualized FlatList with the same look as `Group`), never `Screen` + `.map`, and never a bento |
+| Short fixed content | `Screen` (scroll, padding, pull to refresh, bottom inset, entrance stagger) |
 | Section label | `SectionHeader` |
 | Loading or error | `useDataGate()`. Call it before any "not found" branch. |
 | Nothing to show | `EmptyState` with the action that fixes it (clear search, show all, retry) |
 | Inline message | `Notice` |
 | Primary actions at the bottom | `ActionBar` |
-| Press feedback | `Touchable` (ripple on Android, highlight elsewhere, `accessibilityRole` defaulted) |
+| Press feedback | `Touchable` for rows (ripple on Android, highlight elsewhere); `Tile onPress` for tiles (spring scale) |
+| Tab bar | `PillTabBar`, passed as `tabBar={pillTabBar}` in each tabs layout |
 | Destructive confirmation | `confirmDestructive()`, the only sanctioned `Alert.alert` |
-| Haptics | `haptic.success` / `haptic.failure`, only for the outcome of an async action |
+| Haptics | `haptic.success` / `haptic.failure` for the outcome of an async action, `haptic.select` on a change of tab. Plain taps stay silent. |
 
-Do not use shadowed cards, tinted icon badges, stat-tile grids, or pills that carry no
-state.
+### Bento rules
+
+- One dominant tile per screen (the `solid` or ring tile); vary the spans around it. A
+  grid of equal tiles is a table, so use a list for that.
+- A tile holds one idea: one number, one fact, or one ring with its title.
+- A tile that opens something sets `pushes` (the corner arrow), like `pushes` on a row.
+- At most one `solid` tile and one `display` number per screen.
+- Long or unbounded content never goes in tiles. Bento leads the screen; lists follow.
+- Do not use shadowed cards, tinted icon badges, or pills that carry no state.
 
 **Row rules:** set `pushes` (the chevron) only when tapping pushes a screen. Use 56pt
 minimum rows and 44pt minimum touch targets. Separators are inset to the text,
 using `AVATAR_INSET` after avatars.
+
+## Motion: `src/components/motion.tsx`
+
+| Motion | When | How |
+| --- | --- | --- |
+| Entrance | A screen opens, or its tab is switched to | Blocks fade in and rise 18pt, 55ms apart, 420ms each, ease-out. Tiles also scale up from 0.94. Capped at 9 steps. Not replayed when returning from a pushed screen. |
+| Fill | A screen opens, switched to, or returned to | Rings and `CountUp` numbers run 0 to value in 1.1s, ease-in-out, after a 0.2s delay. A value that changes while the screen is open animates from where it is. |
+| Press | Finger down on a tile or tab button | Spring scale to 0.97 (tiles) or 0.9 (tab content), and back on release. |
+| Tab change | A tab is selected | The indicator slides on a spring with slight overshoot; the button widens, the glyph swaps to filled with a pop, and the label unrolls. |
+
+Everything runs on the UI thread through Reanimated and follows the system "reduce
+motion" setting. Nothing animates in a loop except the loading skeleton pulse. New
+motion goes through the helpers in `motion.tsx`; screens do not create their own
+shared values.
 
 ## Nav read
 
@@ -66,9 +97,12 @@ using `AVATAR_INSET` after avatars.
   (tabs)    Tabs          Home · Course · Batch · Profile [sign out row]
 ```
 
-- Native headers and tab bar come from `src/theme/navigation.ts` (`tabScreenOptions`,
-  `detailScreenOptions`, `navigationTheme`). Detail screens set a short title
-  (code, reg. no, `Module n`) with `<Stack.Screen options>`. The full title goes in `Lead`.
+- Headers are native and come from `src/theme/navigation.ts` (`tabScreenOptions`,
+  `detailScreenOptions`, `navigationTheme`). The tab bar is the custom `PillTabBar`:
+  it floats over the content, hides while the keyboard is open, and keeps the
+  navigator's `tabPress` / `tabLongPress` events and tab accessibility roles.
+- Detail screens set a short title (code, reg. no, `Module n`) with
+  `<Stack.Screen options>`. The full title goes in the screen's lead tile.
 - Modal versus push: the allocate-batch picker is a `pageSheet` modal (pick, then
   commit). Content preview is a Paper `Modal` with an explicit Close.
 - Back: the register wizard uses `usePreventRemove`, so every back gesture steps back
@@ -76,11 +110,12 @@ using `AVATAR_INSET` after avatars.
 - Sign out always confirms.
 
 Route names, tab order and deep links are part of the contract. Change them only with
-an explicit migration note.
+an explicit migration note. The redesign changed none of them.
 
 ## Known gaps
 
 These are recorded as open in `design-baseline.json`: role gating is still a root
 `useEffect`, date of birth is free text, register fields don't chain the keyboard
-action, there is no spring press motion, and the app name differs between login
-("Student Management") and `app.json` ("IGCA").
+action, and the app name differs between login ("Student Management") and `app.json`
+("IGCA"). The redesign has been checked in a browser at phone size only; see
+`REDESIGN-PROGRESS.md` for what still needs a device.
