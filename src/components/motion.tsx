@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
-import { NavigationContext, NavigationRouteContext } from '@react-navigation/native';
+// expo-router bundles its own React Navigation; its contexts are the ones that are populated.
+import { NavigationContext, NavigationRouteContext } from 'expo-router/react-navigation';
 import Animated, {
   cancelAnimation,
   Easing,

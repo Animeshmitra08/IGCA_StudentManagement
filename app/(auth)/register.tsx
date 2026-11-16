@@ -6,12 +6,12 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  type ScrollViewInstance,
   type TextInputProps,
 } from 'react-native';
 import { Button, HelperText, Icon, Menu, Snackbar, TextInput } from 'react-native-paper';
-import { useHeaderHeight } from '@react-navigation/elements';
-import { usePreventRemove } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { usePreventRemove, useRouter } from 'expo-router';
+import { useHeaderHeight } from 'expo-router/react-navigation';
 
 import { useDataGate } from '@/src/components/DataGate';
 import { ProgressRing } from '@/src/components/ProgressRing';
@@ -89,7 +89,7 @@ export default function RegisterScreen() {
   const { register } = useAuth();
   const { courses, modulesOf } = useData();
   const coursesGate = useDataGate('list');
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const headerHeight = useHeaderHeight();
 
   const [step, setStep] = useState(0);
@@ -228,14 +228,7 @@ export default function RegisterScreen() {
   /* ------------------------------------------------------- doc helpers */
 
   const attach = (slot: (typeof DOC_SLOTS)[number]) => {
-    const ext = slot.type === 'PHOTO' ? 'jpg' : 'pdf';
-    const doc: StudentDocument = {
-      id: `DOC-${Date.now()}-${slot.type}`,
-      name: `${slot.type.toLowerCase()}-${form.fullName.split(' ')[0]?.toLowerCase() || 'file'}.${ext}`,
-      type: slot.type,
-      size: `${(Math.random() * 1.8 + 0.2).toFixed(1)} MB`,
-      uploadedOn: new Date().toISOString().slice(0, 10),
-    };
+    const doc = mockDocument(slot.type, form.fullName);
     setDocuments((prev) => [...prev.filter((d) => d.type !== slot.type), doc]);
     setErrors((prev) => ({ ...prev, documents: '' }));
   };
@@ -583,6 +576,18 @@ export default function RegisterScreen() {
       </Snackbar>
     </KeyboardAvoidingView>
   );
+}
+
+/** A stand-in for a picked file until real document picking is wired in. */
+function mockDocument(type: DocumentType, fullName: string): StudentDocument {
+  const ext = type === 'PHOTO' ? 'jpg' : 'pdf';
+  return {
+    id: `DOC-${Date.now()}-${type}`,
+    name: `${type.toLowerCase()}-${fullName.split(' ')[0]?.toLowerCase() || 'file'}.${ext}`,
+    type,
+    size: `${(Math.random() * 1.8 + 0.2).toFixed(1)} MB`,
+    uploadedOn: new Date().toISOString().slice(0, 10),
+  };
 }
 
 /* ---------------------------------------------------------- sub views */

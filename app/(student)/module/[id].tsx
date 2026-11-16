@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Button, Modal, Portal, Snackbar } from 'react-native-paper';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -63,7 +63,7 @@ export default function ModuleDetail() {
 
   const open = (item: ContentItem) => {
     setPreview(null);
-    Linking.openURL(item.url).catch(() => setToast('This file is not available yet.'));
+    router.push({ pathname: '/(student)/content/[id]', params: { id: item.id } });
   };
 
   return (

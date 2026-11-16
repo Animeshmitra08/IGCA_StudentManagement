@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { CommonActions } from '@react-navigation/native';
+import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -23,7 +22,10 @@ import { haptic } from '@/src/utils/feedback';
  * to filled with a small pop, the label unrolls beside it, a selection haptic fires on
  * a change of tab, and the bar slides away while the keyboard is open.
  *
- * Pass it to a tab navigator: `<Tabs tabBar={(props) => <PillTabBar {...props} />}>`.
+ * Pass it to a tab navigator: `<Tabs tabBar={pillTabBar}>`.
+ *
+ * Since Expo SDK 58 the navigator hands the bar an `emitter` (tab press events) and
+ * `navigateToTab(routeKey)` instead of a `navigation` object.
  */
 
 /** Space between the bar's edge and its buttons. */
@@ -36,7 +38,7 @@ const BUTTON_PAD = 14;
 const ACTIVE_RATIO = 2.1;
 const MAX_WIDTH = 520;
 
-export function PillTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
+export function PillTabBar({ state, descriptors, emitter, navigateToTab, insets }: BottomTabBarProps) {
   const { colors } = useAppTheme();
   const [width, setWidth] = useState(0);
 
@@ -105,17 +107,14 @@ export function PillTabBar({ state, descriptors, navigation, insets }: BottomTab
                   : (options.title ?? route.name);
 
               const onPress = () => {
-                const event = navigation.emit({
+                const event = emitter.emit({
                   type: 'tabPress',
                   target: route.key,
                   canPreventDefault: true,
                 });
                 if (!focused && !event.defaultPrevented) {
                   haptic.select();
-                  navigation.dispatch({
-                    ...CommonActions.navigate(route.name, route.params),
-                    target: state.key,
-                  });
+                  navigateToTab(route.key);
                 }
               };
 
@@ -132,7 +131,7 @@ export function PillTabBar({ state, descriptors, navigation, insets }: BottomTab
                   renderIcon={options.tabBarIcon}
                   accessibilityLabel={options.tabBarAccessibilityLabel ?? title}
                   onPress={onPress}
-                  onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+                  onLongPress={() => emitter.emit({ type: 'tabLongPress', target: route.key })}
                 />
               );
             })}

@@ -82,6 +82,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const describe = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong');
 
   useEffect(() => {
+    // Every setState in load() runs after an await, so none of it is synchronous.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
       .catch((e) => setError(describe(e)))
       .finally(() => setLoading(false));

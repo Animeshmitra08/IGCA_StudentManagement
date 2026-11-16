@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AccessibilityInfo,
   Animated,
@@ -478,7 +478,7 @@ export function SearchField({
 
 /** One shared opacity loop for every placeholder block (native driver, UI thread). */
 function usePulse() {
-  const pulse = useRef(new Animated.Value(0.5)).current;
+  const [pulse] = useState(() => new Animated.Value(0.5));
   useEffect(() => {
     let loop: Animated.CompositeAnimation | undefined;
     let cancelled = false;

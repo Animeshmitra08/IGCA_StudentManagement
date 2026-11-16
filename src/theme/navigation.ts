@@ -1,4 +1,4 @@
-import { DarkTheme as NavDark, DefaultTheme as NavLight, type Theme } from '@react-navigation/native';
+import { DarkTheme as NavDark, DefaultTheme as NavLight, type Theme } from 'expo-router';
 import { spacing, type AppTheme } from './theme';
 
 /** React Navigation theme derived from the app tokens, so native headers and the tab bar match. */

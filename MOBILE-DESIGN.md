@@ -56,6 +56,17 @@ Screens and components contain zero hex or rgba values.
 | Destructive confirmation | `confirmDestructive()`, the only sanctioned `Alert.alert` |
 | Haptics | `haptic.success` / `haptic.failure` for the outcome of an async action, `haptic.select` on a change of tab. Plain taps stay silent. |
 
+### Sign-in screen: `src/components/auth/`
+
+The sign-in screen is the one screen with decoration: a mint shape behind the header, a
+mint wave at the bottom, and `CampusIllustration` (drawn with plain views in theme
+colours, no image asset). It is built from `AppLogo`, `LoginBrand` / `LoginHeader`,
+`LoginInput` / `PasswordInput`, `RememberMe`, `PrimaryButton` and `SocialLoginButton`.
+Its form sits in one flat card (`radius.xl`, hairline border, no shadow); its inputs use
+`radius.md` and its buttons `radius.lg`, rounder than the rest of the app. It holds the
+screen's one `display` text ("Welcome Back!"). Do not carry the decoration into the
+signed-in screens.
+
 ### Bento rules
 
 - One dominant tile per screen (the `solid` or ring tile); vary the spans around it. A
@@ -93,7 +104,7 @@ shared values.
   (tabs)    Tabs          Dashboard [sign out] · Students · Courses · Batches
 (teacher)   Stack         (tabs) -> batch/[id]
   (tabs)    Tabs          Overview [sign out] · Students · Content
-(student)   Stack         (tabs) -> module/[id]
+(student)   Stack         (tabs) -> module/[id] -> content/[id]
   (tabs)    Tabs          Home · Course · Batch · Profile [sign out row]
 ```
 
@@ -105,6 +116,10 @@ shared values.
   `<Stack.Screen options>`. The full title goes in the screen's lead tile.
 - Modal versus push: the allocate-batch picker is a `pageSheet` modal (pick, then
   commit). Content preview is a Paper `Modal` with an explicit Close.
+- Content: a row in a module opens the preview modal; its Play or Open button pushes
+  `content/[id]`. A video plays there in `YouTubePlayer` (16:9, `radius.xl`); a document
+  is downloaded and shown by `openDocument()`, which uses `File.preview()` when the
+  installed expo-file-system has it (SDK 58 and up) and the system browser otherwise.
 - Back: the register wizard uses `usePreventRemove`, so every back gesture steps back
   one step instead of discarding the form.
 - Sign out always confirms.
@@ -117,5 +132,7 @@ an explicit migration note. The redesign changed none of them.
 These are recorded as open in `design-baseline.json`: role gating is still a root
 `useEffect`, date of birth is free text, register fields don't chain the keyboard
 action, and the app name differs between login ("Student Management") and `app.json`
-("IGCA"). The redesign has been checked in a browser at phone size only; see
+("IGCA"). On the sign-in screen, "Remember me" keeps the identifier in memory only (the
+app has no device storage), and "Forgot Password?", Google and Apple show a message
+instead of doing anything, because there is no backend for them yet. The redesign has been checked in a browser at phone size only; see
 `REDESIGN-PROGRESS.md` for what still needs a device.

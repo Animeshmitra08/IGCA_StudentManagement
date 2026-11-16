@@ -4,8 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { ThemeProvider } from '@react-navigation/native';
-import { Slot, useRouter, useSegments } from 'expo-router';
+import { Slot, ThemeProvider, useRouter, useSegments } from 'expo-router';
 
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
 import { DataProvider } from '@/src/context/DataContext';

@@ -30,12 +30,17 @@ const today = () => new Date().toISOString().slice(0, 10);
 /* ------------------------------------------------------------------ auth */
 
 export const api = {
-  async login(email: string, password: string): Promise<User> {
+  /** `identifier` is an email, or a student's registration (roll) number. */
+  async login(identifier: string, password: string): Promise<User> {
     return respond(() => {
+      const id = identifier.trim().toLowerCase();
+      const rollOwner = db.students.find((s) => s.registrationNo.toLowerCase() === id);
       const user = db.users.find(
-        (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password,
+        (u) =>
+          u.password === password &&
+          (u.email.toLowerCase() === id || (!!rollOwner && u.studentId === rollOwner.id)),
       );
-      if (!user) throw new Error('Invalid email or password');
+      if (!user) throw new Error('Invalid credentials. Check your email or roll number and password.');
       return user;
     }, 600);
   },
