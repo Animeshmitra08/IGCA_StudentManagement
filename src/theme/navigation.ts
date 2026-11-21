@@ -1,5 +1,6 @@
 import { DarkTheme as NavDark, DefaultTheme as NavLight, type Theme } from 'expo-router';
-import { spacing, type AppTheme } from './theme';
+import { renderStackHeader, renderTabHeader } from '@/src/components/header/AppHeader';
+import type { AppTheme } from './theme';
 
 /** React Navigation theme derived from the app tokens, so native headers and the tab bar match. */
 export function navigationTheme(theme: AppTheme): Theme {
@@ -11,7 +12,7 @@ export function navigationTheme(theme: AppTheme): Theme {
       ...base.colors,
       primary: c.primary,
       background: c.screen,
-      // Headers sit flush on the screen background.
+      // Floating headers paint their own gradient; this colours any other card surface.
       card: c.screen,
       text: c.onSurface,
       border: c.border,
@@ -20,25 +21,29 @@ export function navigationTheme(theme: AppTheme): Theme {
   };
 }
 
-/** Shared options for pushed (detail) screens: native header, no shadow, icon-only back. */
+/*
+ * Both headers float (`headerTransparent`): the screen runs up to the top edge and
+ * scrolls under the header's wavy bottom. Scrollables clear it with useHeaderInset()
+ * (Screen, GroupedList and useDataGate already do).
+ */
+
+/**
+ * Shared options for pushed (detail) screens: the compact AppHeader (back button,
+ * short title, open book art). Screens set `title` and `headerRight` as usual.
+ */
 export const detailScreenOptions = {
   headerShown: true,
-  headerShadowVisible: false,
-  headerBackButtonDisplayMode: 'minimal',
-  headerTitleStyle: { fontSize: 17, fontWeight: '600' },
+  headerTransparent: true,
+  header: renderStackHeader,
 } as const;
 
 /**
- * Shared options for tab navigators: native header with a left-aligned title. The tab
- * bar itself is the floating PillTabBar, passed as `tabBar` in each tabs layout.
+ * Shared options for tab navigators: the tall AppHeader (greeting, large title,
+ * mortarboard art). The tab bar itself is the floating PillTabBar, passed as `tabBar`
+ * in each tabs layout.
  */
-export function tabScreenOptions(colors: AppTheme['colors']) {
-  return {
-    headerShown: true,
-    headerShadowVisible: false,
-    headerTitleAlign: 'left',
-    headerTitleStyle: { fontSize: 22, fontWeight: '700' },
-    headerRightContainerStyle: { paddingRight: spacing.lg },
-    headerStyle: { backgroundColor: colors.screen },
-  } as const;
-}
+export const tabScreenOptions = {
+  headerShown: true,
+  headerTransparent: true,
+  header: renderTabHeader,
+} as const;

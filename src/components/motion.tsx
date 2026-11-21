@@ -24,10 +24,14 @@ import { scheduleOnRN } from 'react-native-worklets';
  * - Press: tiles and tab buttons shrink slightly under the finger and spring back.
  */
 
-/** Springs. `slide` has a touch of overshoot for the tab indicator; `press` is tighter. */
+/**
+ * Springs. `slide` has a touch of overshoot for the tab indicator; `press` is tighter;
+ * `motif` is looser and bouncier, for the tab icon landing in the header art.
+ */
 export const springs = {
   slide: { mass: 1, stiffness: 220, damping: 22 },
   press: { mass: 1, stiffness: 420, damping: 28 },
+  motif: { mass: 1, stiffness: 170, damping: 13 },
 } as const;
 
 const STAGGER = 55;

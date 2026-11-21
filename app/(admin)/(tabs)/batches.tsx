@@ -7,7 +7,6 @@ import { useDataGate } from '@/src/components/DataGate';
 import { GroupedList } from '@/src/components/Screen';
 import { EmptyState, FilterChips } from '@/src/components/ui';
 import { useData } from '@/src/context/DataContext';
-import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 
 export default function AdminBatches() {
@@ -35,12 +34,10 @@ export default function AdminBatches() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.screen }]}>
-      <View style={styles.toolbar}>
-        <FilterChips items={chips} value={courseFilter} onChange={setCourseFilter} />
-      </View>
-
       <GroupedList
         tabbed
+        // The chips scroll with the rows, so everything passes under the header.
+        header={<FilterChips items={chips} value={courseFilter} onChange={setCourseFilter} />}
         data={visible}
         keyExtractor={(b) => b.id}
         refreshing={refreshing}
@@ -72,5 +69,4 @@ export default function AdminBatches() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  toolbar: { paddingTop: spacing.sm },
 });

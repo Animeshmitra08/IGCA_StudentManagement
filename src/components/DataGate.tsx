@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { EmptyState, Group, SkeletonDetail, SkeletonList } from './ui';
 import { useData } from '@/src/context/DataContext';
+import { useHeaderInset } from './Screen';
 import { spacing } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 
@@ -18,10 +19,11 @@ import { useAppTheme } from '@/src/theme/useAppTheme';
 export function useDataGate(kind: 'list' | 'detail' = 'list'): React.ReactElement | null {
   const { colors } = useAppTheme();
   const { loading, refreshing, error, refresh } = useData();
+  const paddingTop = useHeaderInset();
 
   if (loading || (error && refreshing)) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.screen }}>
+      <View style={{ flex: 1, paddingTop, backgroundColor: colors.screen }}>
         {kind === 'list' ? (
           // Bones sit on the card surface, like the rows they stand in for.
           <View style={{ padding: spacing.lg }}>
@@ -38,7 +40,7 @@ export function useDataGate(kind: 'list' | 'detail' = 'list'): React.ReactElemen
 
   if (error) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.screen }}>
+      <View style={{ flex: 1, paddingTop, backgroundColor: colors.screen }}>
         <EmptyState
           icon="cloud-alert-outline"
           title="Couldn't load your data"

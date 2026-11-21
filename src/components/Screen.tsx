@@ -9,6 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HeaderHeightContext } from 'expo-router/react-navigation';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { elevation, radius, spacing, tabBar } from '@/src/theme/theme';
 import { Bento, bentoSteps } from './Bento';
@@ -25,6 +26,15 @@ export function useBottomPadding(mode?: 'tabbed' | 'docked') {
   if (mode === 'docked') return spacing.xl;
   if (mode === 'tabbed') return spacing.xl + insets.bottom + tabBar.gap + tabBar.height;
   return spacing.xl + insets.bottom;
+}
+
+/**
+ * Height of the floating AppHeader over this screen, including its wavy edge (0 when
+ * the screen has no header). Scroll content is padded by this so it starts below the
+ * header and then scrolls up under it.
+ */
+export function useHeaderInset() {
+  return React.useContext(HeaderHeightContext) ?? 0;
 }
 
 /** Top-level children with fragments opened up, so each visible block is one entry. */
@@ -67,10 +77,17 @@ function staggered(children: React.ReactNode) {
  * web clone this element and pass the scroll view in as its children and style, which
  * a wrapper would swallow (blank screen).
  */
-function refresher(tint: string, refreshing: boolean, onRefresh?: () => void) {
+function refresher(tint: string, refreshing: boolean, onRefresh?: () => void, offset = 0) {
   if (!onRefresh) return undefined;
   return (
-    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={tint} colors={[tint]} />
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor={tint}
+      colors={[tint]}
+      // The spinner appears below the floating header, not behind it.
+      progressViewOffset={offset}
+    />
   );
 }
 
@@ -93,14 +110,16 @@ interface Props {
 export function Screen({ children, refreshing = false, onRefresh, tabbed, noBottomInset, style }: Props) {
   const { colors } = useAppTheme();
   const paddingBottom = useBottomPadding(noBottomInset ? 'docked' : tabbed ? 'tabbed' : undefined);
+  const headerInset = useHeaderInset();
 
   return (
     <EntranceProvider>
       <ScrollView
         style={[styles.base, { backgroundColor: colors.screen }]}
-        contentContainerStyle={[styles.content, { paddingBottom }, style]}
+        contentContainerStyle={[styles.content, { paddingTop: headerInset + spacing.lg, paddingBottom }, style]}
+        scrollIndicatorInsets={{ top: headerInset }}
         keyboardShouldPersistTaps="handled"
-        refreshControl={refresher(colors.primary, refreshing, onRefresh)}
+        refreshControl={refresher(colors.primary, refreshing, onRefresh, headerInset)}
       >
         {staggered(children)}
       </ScrollView>
@@ -126,7 +145,7 @@ export function GroupedList<T>({
   data: T[];
   keyExtractor: (item: T) => string;
   renderItem: (item: T) => React.ReactElement;
-  /** Scrolls with the list, above the group. */
+  /** Scrolls with the list, above the group (search fields, filter chips). */
   header?: React.ReactElement;
   /** Shown instead of the group when `data` is empty. */
   empty?: React.ReactElement;
@@ -137,20 +156,22 @@ export function GroupedList<T>({
 }) {
   const { colors } = useAppTheme();
   const paddingBottom = useBottomPadding(tabbed ? 'tabbed' : undefined);
+  const headerInset = useHeaderInset();
   const last = data.length - 1;
 
   return (
     <EntranceProvider>
     <FlatList
       style={[styles.base, { backgroundColor: colors.screen }]}
-      contentContainerStyle={[styles.listContent, { paddingBottom }]}
+      contentContainerStyle={[styles.listContent, { paddingTop: headerInset + spacing.sm, paddingBottom }]}
+      scrollIndicatorInsets={{ top: headerInset }}
       data={data}
       keyExtractor={keyExtractor}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
-      ListHeaderComponent={header}
+      ListHeaderComponent={header ? <View style={styles.listHeader}>{header}</View> : undefined}
       ListEmptyComponent={empty}
-      refreshControl={refresher(colors.primary, refreshing, onRefresh)}
+      refreshControl={refresher(colors.primary, refreshing, onRefresh, headerInset)}
       renderItem={({ item, index }) => (
         // Rows on the first screenful cascade in; rows scrolled to later are just there.
         <Enter order={index}>
@@ -196,7 +217,8 @@ export function ActionBar({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   base: { flex: 1 },
   content: { padding: spacing.lg, flexGrow: 1 },
-  listContent: { paddingTop: spacing.sm, flexGrow: 1 },
+  listContent: { flexGrow: 1 },
+  listHeader: { paddingBottom: spacing.sm },
   cell: {
     marginHorizontal: spacing.lg,
     borderLeftWidth: StyleSheet.hairlineWidth,

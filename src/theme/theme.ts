@@ -101,6 +101,14 @@ export interface AppColors {
   border: string;
   /** Press highlight and Android ripple colour. */
   pressed: string;
+  /** App header: gradient ends, ink on it, and its decorative line art. */
+  headerStart: string;
+  headerEnd: string;
+  onHeader: string;
+  onHeaderMuted: string;
+  headerArt: string;
+  /** Fill behind icon buttons sitting on the header. */
+  headerButton: string;
 }
 
 export type AppTheme = MD3Theme & { colors: MD3Theme['colors'] & AppColors };
@@ -165,6 +173,12 @@ export const LightTheme: AppTheme = {
     card: '#FFFFFF',
     border: '#E4E4E7',
     pressed: 'rgba(24, 24, 27, 0.08)',
+    headerStart: '#23805F',
+    headerEnd: '#0E3B2D',
+    onHeader: '#FFFFFF',
+    onHeaderMuted: 'rgba(255, 255, 255, 0.74)',
+    headerArt: '#9BE3C7',
+    headerButton: 'rgba(255, 255, 255, 0.16)',
   },
 };
 
@@ -226,6 +240,12 @@ export const DarkTheme: AppTheme = {
     card: '#18181B',
     border: '#2E2E33',
     pressed: 'rgba(244, 244, 245, 0.08)',
+    headerStart: '#1B5442',
+    headerEnd: '#0A221B',
+    onHeader: '#F4F4F5',
+    onHeaderMuted: 'rgba(244, 244, 245, 0.7)',
+    headerArt: '#6FCBA9',
+    headerButton: 'rgba(244, 244, 245, 0.12)',
   },
 };
 

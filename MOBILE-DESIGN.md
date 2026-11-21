@@ -15,7 +15,8 @@ and the tab bar is a floating pill.
 
 **Dials:** expression 6 · motion 6 · density 4.
 Expression 6 means a custom tab bar, tinted and solid tiles, and one hero tile per
-screen, but still native headers and no decorative imagery. Motion 6 means screens
+screen. Decorative imagery lives in exactly two places: the sign-in screen and the
+`AppHeader` (a green gradient band with SVG line art). Screen content stays undecorated. Motion 6 means screens
 enter with a stagger, rings and counters fill, and tiles and tabs spring under the
 finger; nothing loops and everything follows "reduce motion". Density 4 means tiles for
 the headline facts and grouped lists (56pt rows) for everything long.
@@ -30,6 +31,7 @@ the headline facts and grouped lists (56pt rows) for everything long.
 | Color | One accent: `primary` (green). It also means "done or active". `secondary` and `tertiary` are neutral ink, so Paper never adds a second hue. Status colors come from `statusColors()` / `statusTone()` and always pair color with an icon and a label. |
 | Tile tones | `card` (default), `solid` (the accent; one per screen, for the hero number), and the tinted containers `primary`, `info`, `warning`, `error`, `neutral`. A tint must mean something (a status, "done", "needs attention"); it is not decoration. |
 | `elevation` | Content is flat: hairlines and tinted tiles, no shadows. `raised` is for bars docked above scrolling content (`ActionBar`); `floating` is for the pill tab bar only. |
+| Header colours | `headerStart` → `headerEnd` (the header gradient), `onHeader` / `onHeaderMuted` (its ink), `headerArt` (its line art and under-wave), `headerButton` (the circle behind header icon buttons). Used by `AppHeader`, `HeaderArt` and `HeaderButton` only. |
 | `tabBar` | Height 64, gap 12. Tab screens pad their scroll content by this much (handled by `Screen` and `GroupedList` with `tabbed`). |
 | Dark mode | `DarkTheme` mirrors every key. Light and dark are both checked on every change. |
 
@@ -45,7 +47,7 @@ Screens and components contain zero hex or rgba values.
 | A number that matters | `CountUp` (counts from zero each time the screen opens) |
 | A group of rows | `Group` with `Row`, `InfoRow`, `BatchRow`, `StudentRow`, `ContentRow`, `GroupBody` for non-row content |
 | A list that can grow | `GroupedList` (a virtualized FlatList with the same look as `Group`), never `Screen` + `.map`, and never a bento |
-| Short fixed content | `Screen` (scroll, padding, pull to refresh, bottom inset, entrance stagger) |
+| Short fixed content | `Screen` (scroll, padding, pull to refresh, top inset under the floating header, bottom inset, entrance stagger) |
 | Section label | `SectionHeader` |
 | Loading or error | `useDataGate()`. Call it before any "not found" branch. |
 | Nothing to show | `EmptyState` with the action that fixes it (clear search, show all, retry) |
@@ -53,6 +55,7 @@ Screens and components contain zero hex or rgba values.
 | Primary actions at the bottom | `ActionBar` |
 | Press feedback | `Touchable` for rows (ripple on Android, highlight elsewhere); `Tile onPress` for tiles (spring scale) |
 | Tab bar | `PillTabBar`, passed as `tabBar={pillTabBar}` in each tabs layout |
+| Header | `AppHeader` through `tabScreenOptions` / `detailScreenOptions`. Never set `headerStyle`, `headerTitleStyle` or `headerTintColor` on a screen; set `title` and `headerRight`. Header actions are `HeaderButton`s. |
 | Destructive confirmation | `confirmDestructive()`, the only sanctioned `Alert.alert` |
 | Haptics | `haptic.success` / `haptic.failure` for the outcome of an async action, `haptic.select` on a change of tab. Plain taps stay silent. |
 
@@ -64,8 +67,45 @@ colours, no image asset). It is built from `AppLogo`, `LoginBrand` / `LoginHeade
 `LoginInput` / `PasswordInput`, `RememberMe`, `PrimaryButton` and `SocialLoginButton`.
 Its form sits in one flat card (`radius.xl`, hairline border, no shadow); its inputs use
 `radius.md` and its buttons `radius.lg`, rounder than the rest of the app. It holds the
-screen's one `display` text ("Welcome Back!"). Do not carry the decoration into the
-signed-in screens.
+screen's one `display` text ("Welcome Back!"). Do not carry this decoration into the
+signed-in screens; their decoration is the header (below).
+
+### App header: `src/components/header/`
+
+`AppHeader` replaces the native header on every screen that has one (all tab roots,
+all pushed screens, and register). It runs up under the status bar, which it turns
+`light` (`expo-status-bar`; the root layout's own style still applies to sign-in).
+
+**It floats.** Both header option sets use `headerTransparent: true`, and the header's
+own background is transparent, so screen content scrolls up under the wavy edge and
+shows through the translucent under-wave. Every scrollable clears it at rest with
+`useHeaderInset()` (from `Screen.tsx`; the measured header height, wave included):
+
+- `Screen` and `GroupedList` pad their top by it, push the pull-to-refresh spinner
+  below it (`progressViewOffset`) and inset the scroll indicator. `useDataGate`'s
+  skeleton and error views pad by it too.
+- Search fields and filter chips go in `GroupedList`'s `header` prop, so they scroll
+  with the rows. Never pin a toolbar above a list: it would sit behind the header.
+- A screen that builds its own layout (register) pads its root by the header height.
+  Its `KeyboardAvoidingView` then needs no `keyboardVerticalOffset`.
+- Only the header's buttons take touches (`pointerEvents="box-none"`).
+
+- **Background (`HeaderArt`, react-native-svg):** a diagonal `headerStart` →
+  `headerEnd` gradient with an S-shaped wave along the bottom edge and a lighter
+  `headerArt` wave peeking out beneath it. Clipped to that shape: an academic motif
+  in thin line art circled by three orbit rings, a soft radial glow behind it, a
+  2 x 6 dot grid that fades out, and two or three sparkles. All art is on the right
+  half, away from the title, and hidden from assistive tech.
+- **`tab` variant (tab roots):** greeting eyebrow ("Good evening, Animesh", `label`,
+  muted), `title`, then `headerRight`. Motif: a mortarboard. Wave depth 28.
+- **`stack` variant (pushed screens):** a `HeaderButton` back arrow (when there is
+  somewhere to go back to), `heading` title, `headerRight`. Motif: an open book.
+  Wave depth 18. The back button calls `navigation.goBack()`, so `usePreventRemove`
+  (register) still intercepts it.
+- Text on the header picks up `onHeader` / `onHeaderMuted` through `InkContext`.
+- The header measures itself, so large Dynamic Type grows it instead of clipping, and
+  the art is redrawn to the new size.
+- The art is static. It does not animate or loop.
 
 ### Bento rules
 
@@ -108,8 +148,8 @@ shared values.
   (tabs)    Tabs          Home · Course · Batch · Profile [sign out row]
 ```
 
-- Headers are native and come from `src/theme/navigation.ts` (`tabScreenOptions`,
-  `detailScreenOptions`, `navigationTheme`). The tab bar is the custom `PillTabBar`:
+- Headers are the custom `AppHeader`, set by `src/theme/navigation.ts`
+  (`tabScreenOptions`, `detailScreenOptions`); `navigationTheme` colours the rest. The tab bar is the custom `PillTabBar`:
   it floats over the content, hides while the keyboard is open, and keeps the
   navigator's `tabPress` / `tabLongPress` events and tab accessibility roles.
 - Detail screens set a short title (code, reg. no, `Module n`) with

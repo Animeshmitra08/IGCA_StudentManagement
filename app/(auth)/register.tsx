@@ -243,9 +243,10 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.root, { backgroundColor: colors.screen }]}
+      // The header floats; the pinned step progress starts just below it. The view
+      // itself starts at the top of the screen, so the keyboard needs no offset.
+      style={[styles.root, { paddingTop: headerHeight, backgroundColor: colors.screen }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
     >
       <StepProgress step={step} />
 

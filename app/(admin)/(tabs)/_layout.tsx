@@ -4,13 +4,10 @@ import { SignOutButton } from '@/src/components/HeaderButton';
 import { pillTabBar } from '@/src/components/PillTabBar';
 import { tabIcon } from '@/src/components/TabIcon';
 import { tabScreenOptions } from '@/src/theme/navigation';
-import { useAppTheme } from '@/src/theme/useAppTheme';
 
 export default function AdminTabs() {
-  const { colors } = useAppTheme();
-
   return (
-    <Tabs tabBar={pillTabBar} screenOptions={tabScreenOptions(colors)}>
+    <Tabs tabBar={pillTabBar} screenOptions={tabScreenOptions}>
       <Tabs.Screen
         name="index"
         options={{

@@ -39,14 +39,16 @@ export default function TeacherStudents() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.screen }]}>
-      {mine.length > 0 && (
-        <View style={styles.search}>
-          <SearchField placeholder="Name or reg. no" value={query} onChangeText={setQuery} />
-        </View>
-      )}
-
       <GroupedList
         tabbed
+        // The search scrolls with the rows, so everything passes under the header.
+        header={
+          mine.length > 0 ? (
+            <View style={styles.search}>
+              <SearchField placeholder="Name or reg. no" value={query} onChangeText={setQuery} />
+            </View>
+          ) : undefined
+        }
         data={visible}
         keyExtractor={(s) => s.id}
         separatorInset={AVATAR_INSET}
@@ -83,5 +85,5 @@ export default function TeacherStudents() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  search: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xs },
+  search: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs },
 });

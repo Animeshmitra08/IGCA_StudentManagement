@@ -70,17 +70,21 @@ export default function AdminStudents() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.screen }]}>
-      <View style={styles.search}>
-        <SearchField placeholder="Name, reg. no, email or phone" value={query} onChangeText={setQuery} />
-      </View>
-      <FilterChips
-        items={FILTERS.map((item) => ({ ...item, count: counts[item.key] }))}
-        value={filter}
-        onChange={setFilter}
-      />
-
       <GroupedList
         tabbed
+        // Search and chips scroll with the rows, so everything passes under the header.
+        header={
+          <>
+            <View style={styles.search}>
+              <SearchField placeholder="Name, reg. no, email or phone" value={query} onChangeText={setQuery} />
+            </View>
+            <FilterChips
+              items={FILTERS.map((item) => ({ ...item, count: counts[item.key] }))}
+              value={filter}
+              onChange={setFilter}
+            />
+          </>
+        }
         data={visible}
         keyExtractor={(s) => s.id}
         separatorInset={AVATAR_INSET}
@@ -124,5 +128,5 @@ export default function AdminStudents() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  search: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, paddingBottom: spacing.xs },
+  search: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.xs },
 });

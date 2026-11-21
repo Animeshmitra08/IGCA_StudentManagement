@@ -2,10 +2,14 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet } from 'react-native';
 import { Icon } from 'react-native-paper';
 import { useAuth } from '@/src/context/AuthContext';
+import { radius } from '@/src/theme/theme';
 import { useAppTheme } from '@/src/theme/useAppTheme';
 import { confirmDestructive } from '@/src/utils/feedback';
 
-/** Icon button for a native header (44pt target, borderless ripple). */
+/**
+ * Icon button on the AppHeader: a 40pt translucent circle in the header ink, with a
+ * 44pt touch target.
+ */
 export function HeaderButton({ icon, label, onPress }: { icon: string; label: string; onPress: () => void }) {
   const { colors } = useAppTheme();
   return (
@@ -13,10 +17,15 @@ export function HeaderButton({ icon, label, onPress }: { icon: string; label: st
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      android_ripple={{ color: colors.pressed, borderless: true, radius: 22 }}
-      style={({ pressed }) => [styles.button, pressed && Platform.OS !== 'android' && { opacity: 0.5 }]}
+      hitSlop={2}
+      android_ripple={{ color: colors.headerButton, borderless: true, radius: 22 }}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: colors.headerButton },
+        pressed && Platform.OS !== 'android' && { opacity: 0.6 },
+      ]}
     >
-      <Icon source={icon} size={22} color={colors.onSurface} />
+      <Icon source={icon} size={20} color={colors.onHeader} />
     </Pressable>
   );
 }
@@ -39,5 +48,5 @@ export function SignOutButton() {
 }
 
 const styles = StyleSheet.create({
-  button: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  button: { width: 40, height: 40, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
 });
